@@ -1,7 +1,7 @@
  Sokral < http://sokral.us >
 
 WHAT IS SOKRAL?
-	A social media crawling and search engine, built on django. Aims to
+	A social media crawling and search engine, built on Django. Aims to
 	provide an easy and flexible framework for building applications that
 	thrive on a wide range of constantly updated social data. Sokral will get
 	you up and running with the ability to search and scrape media and
@@ -9,9 +9,9 @@ WHAT IS SOKRAL?
 
 CURRENT FEATURES:
 
- * Ability to harvest user profile information, tweets, and URLS from Twitter
+ * Ability to harvest user profile information, tweets, and URLs from Twitter
 
- * Ability to expand all short-urls into full real URLS.
+ * Ability to expand all short-urls into full real URLs.
 
 NOTES
 

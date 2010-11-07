@@ -13,3 +13,7 @@ W: http://lrvick.net
 P: 4096R/36C8AAA9 6B61 ECD7 6088 748C 7059  0D55 E90A 4013 36C8 AAA9
 D: First PHP prototype, and hammering away at the current Django rebuild
 S: 2264 Gator Dr #359 Orlando, FL 32807, USA
+
+N: David Pflug
+E: david@tpflug.com
+D: Cleaning, helping with Django rebuild
