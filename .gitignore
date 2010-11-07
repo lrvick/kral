@@ -1,0 +1,9 @@
+*~
+*.pyc
+*.swm
+*.swn
+*.swo
+*.swp
+
+.private-settings
+django.wsgi
