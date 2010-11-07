@@ -28,21 +28,6 @@ class Kraler(object):
             self.buffer = ""
             if content["text"] and content["user"]["id_str"]:
                 urls = content['entities']['urls']
-
-                #-- tweet model stuff --#
-                #truncated = content['truncated'] 
-                #irt_status_id = content['in_reply_to_status_id']
-                #irt_status_name = content['in_reply_to_status_name']
-
-                #retweet_count = content['retweet_count'] 
-                #geo = content['geo'] 
-                #place = content['place'] 
-                #retweeted = content['retweeted'] 
-                #contributors = content["contributors"]
-                #geo = content["user"]["location"]
-                #place = content["user"]["place"]
-
-                #-- user model stuff --#
                 twitter_user = TwitterUser (
                     user_id = content["user"]["id_str"],
                     user_name = content["user"]["screen_name"],
@@ -61,16 +46,22 @@ class Kraler(object):
                     #utc_offset = content["user"]["utc_offset"],
                 )
                 twitter_user.save()
-                
                 twitter_tweet = TwitterTweet (
                     date = datetime.datetime.fromtimestamp(time.mktime(time.strptime(content["created_at"], '%a %b %d %H:%M:%S +0000 %Y'))),
                     tweet_id = content["id_str"],
                     user_id = TwitterUser.objects.get(user_id=content["user"]["id_str"]),
                     text = content["text"],
+                    #place = content["user"]["place"],
+                    truncated = content['truncated'], 
+                    geo = content["user"]["location"],
+                    contributors = content["contributors"],
+                    #retweeted = content['retweeted'], 
+                    #irt_status_id = content['in_reply_to_status_id'],
+                    #irt_status_name = content['in_reply_to_status_name'],
+                    #retweet_count = content['retweet_count'], 
+                    #geo = content['geo'], 
                 )
                 twitter_tweet.save()
-
-                #-- web model stuff --#
                 def expand_url(url, n=1):
                     headers = {"User-Agent": "Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.7.6) Gecko/20050512 Firefox"}
                     parsed_url = urlparse.urlsplit(url)
