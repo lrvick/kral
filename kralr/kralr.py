@@ -54,7 +54,7 @@ class Kraler(object):
                         contributors_enabled = content["user"]["contributors_enabled"],
                         #utc_offset = content["user"]["utc_offset"],
                     )
-                twitter_user.save()
+                    twitter_user.save()
                 twitter_tweet = TwitterTweet (
                     date = datetime.datetime.fromtimestamp(time.mktime(time.strptime(content["created_at"], '%a %b %d %H:%M:%S +0000 %Y'))),
                     tweet_id = content["id_str"],
@@ -99,16 +99,15 @@ class Kraler(object):
                     else:
                         check_url = url['url']
                     url = expand_url(check_url)
-                    if url:
-                        try:
-                            old_link = WebLink.objects.get(url=url)
-                            old_link.total_mentions += 1
-                            old_link.save()
-                        except:
-                            weblink = WebLink(
-                                url = expand_url(check_url),
-                            )
-                            weblink.save()
+                    try:
+                        old_link = WebLink.objects.get(url=url)
+                        old_link.total_mentions += 1
+                        old_link.save()
+                    except:
+                        weblink = WebLink(
+                            url = url,
+                        )
+                        weblink.save()
 
 kraler = Kraler()
 
