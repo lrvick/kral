@@ -22,14 +22,15 @@ class Kraler(object):
         self.buffer += data
         if data.endswith("\r\n") and self.buffer.strip():
             content = json.loads(self.buffer)
-            print "--------------------------------------"
-            print content["text"].encode( "utf-8" )
-            print content["user"]["id_str"]
             self.buffer = ""
-            if content["text"] and content["user"]["id_str"]:
+            user_id = content["user"].get('id_str', None)
+            if user_id is not None:
+                print "--------------------------------------"
+                print content["text"].encode( "utf-8" )
+                print content["user"]["id_str"]
                 urls = content['entities']['urls']
                 twitter_user = TwitterUser (
-                    user_id = content["user"]["id_str"],
+                    user_id = user_id,
                     user_name = content["user"]["screen_name"],
                     real_name = content["user"]["name"],
                     #location = content["user"]["location"],
