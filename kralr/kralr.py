@@ -29,23 +29,31 @@ class Kraler(object):
                 print content["text"].encode( "utf-8" )
                 print content["user"]["id_str"]
                 urls = content['entities']['urls']
-                twitter_user = TwitterUser (
-                    user_id = user_id,
-                    user_name = content["user"]["screen_name"],
-                    real_name = content["user"]["name"],
-                    #location = content["user"]["location"],
-                    avatar = content["user"]["profile_image_url"],
-                    date = datetime.datetime.fromtimestamp(time.mktime(time.strptime(content["user"]["created_at"], '%a %b %d %H:%M:%S +0000 %Y'))),
-                    language = content["user"]["lang"],
-                    total_tweets = content["user"]["statuses_count"],
-                    #time_zone = content["user"]["time_zone"],
-                    listed = content["user"]["listed_count"],
-                    following = content["user"]["friends_count"],
-                    followers = content["user"]["followers_count"],
-                    geo_enabled = content["user"]["geo_enabled"],
-                    contributors_enabled = content["user"]["contributors_enabled"],
-                    #utc_offset = content["user"]["utc_offset"],
-                )
+                try:
+                    twitter_user = TwitterUser.objects.get(user_id=user_id)
+                    twitter_user.total_tweets = content["user"]["statuses_count"],
+                    twitter_user.listed = content["user"]["listed_count"],
+                    twitter_user.following = content["user"]["friends_count"],
+                    twitter_user.followers = content["user"]["followers_count"],
+                    twitter_user.save()
+                except:
+                    twitter_user = TwitterUser (
+                        user_id = user_id,
+                        user_name = content["user"]["screen_name"],
+                        real_name = content["user"]["name"],
+                        #location = content["user"]["location"],
+                        avatar = content["user"]["profile_image_url"],
+                        date = datetime.datetime.fromtimestamp(time.mktime(time.strptime(content["user"]["created_at"], '%a %b %d %H:%M:%S +0000 %Y'))),
+                        language = content["user"]["lang"],
+                        total_tweets = content["user"]["statuses_count"],
+                        #time_zone = content["user"]["time_zone"],
+                        listed = content["user"]["listed_count"],
+                        following = content["user"]["friends_count"],
+                        followers = content["user"]["followers_count"],
+                        geo_enabled = content["user"]["geo_enabled"],
+                        contributors_enabled = content["user"]["contributors_enabled"],
+                        #utc_offset = content["user"]["utc_offset"],
+                    )
                 twitter_user.save()
                 twitter_tweet = TwitterTweet (
                     date = datetime.datetime.fromtimestamp(time.mktime(time.strptime(content["created_at"], '%a %b %d %H:%M:%S +0000 %Y'))),
