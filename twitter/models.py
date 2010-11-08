@@ -69,8 +69,6 @@ class TwitterTweet(models.Model):
     sentiment = models.CharField(max_length=1,default='0',choices=SENTIMENT_CHOICES)
     truncated = models.BooleanField(default=0)
     last_modified = models.DateTimeField(auto_now=True,auto_now_add=True)
-    class Meta:
-        unique_together = (('text', 'user_id'))
     def __unicode__(self):
         return self.text[:20]
 
