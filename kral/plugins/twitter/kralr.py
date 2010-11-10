@@ -1,16 +1,11 @@
-#!/usr/bin/python
-import httplib,urlparse,pycurl,json,time,re,sys,time,datetime
-from django.utils.encoding import smart_unicode
-from django.template import RequestContext
-from twitter.models import TwitterTweet,TwitterUser
-from web.models import WebLink
+import httplib,urlparse,pycurl,json,time,re,sys,time,datetime,os
 from django.conf import settings
+from models import *
+from kral.models import *
 
 QUERY="love"
 
-USER_AGENT="Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.7.6) Gecko/20050512 Firefox"
-
-class Kraler(object):
+class Twitter(object):
     def __init__(self):
         self.buffer = ""
         self.stream = pycurl.Curl()
@@ -108,7 +103,5 @@ class Kraler(object):
                             url = url,
                         )
                         weblink.save()
-
-kraler = Kraler()
 
 #vim: ai ts=4 sts=4 et sw=4

@@ -1,3 +1,6 @@
+import os
+PROJECT_PATH = os.path.realpath(os.path.dirname(__file__))
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -24,7 +27,7 @@ SITE_ID = 1
 
 USE_I18N = True
 
-MEDIA_ROOT = '/home/your_username/sokral_env/media'
+MEDIA_ROOT = os.path.join(PROJECT_PATH,'media')
 
 MEDIA_URL = '/media/'
 
@@ -45,28 +48,27 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
-ROOT_URLCONF = 'sokral.urls'
+ROOT_URLCONF = 'urls'
 
 TEMPLATE_DIRS = (
-		'/home/your_username/sokral/templates',
+		os.path.join(PROJECT_PATH,'templates'),
 )
 
 INSTALLED_APPS = (
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.sites',
-    'django.contrib.messages',
-    'django.contrib.comments',
-    'django.contrib.admin',
+#    'django.contrib.auth',
+#    'django.contrib.contenttypes',
+#    'django.contrib.sessions',
+#    'django.contrib.sites',
+#    'django.contrib.messages',
+#    'django.contrib.comments',
+#    'django.contrib.admin',
     'south',
-    'web',
-    'twitter',
-    'kralr',
+    'kral',
 )
 
+USER_AGENT="Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.7.6) Gecko/20050512 Firefox"
+
 #Load installation specific settings/passwords from external file with restrictive permissions
-from os.path import expanduser
-execfile(expanduser('.private-settings'))
+execfile(os.path.join(PROJECT_PATH,'.private-settings'))
 
 # vim: ai ts=4 sts=4 et sw=4

@@ -51,6 +51,8 @@ class TwitterUser(models.Model):
     last_modified = models.DateTimeField(auto_now=True,auto_now_add=True)
     def __unicode__(self):
         return self.user_name
+    class Meta:
+        app_label = 'kral'
 
 class TwitterTweet(models.Model):
     user_id = models.ForeignKey('TwitterUser')
@@ -71,5 +73,7 @@ class TwitterTweet(models.Model):
     last_modified = models.DateTimeField(auto_now=True,auto_now_add=True)
     def __unicode__(self):
         return self.text[:20]
+    class Meta:
+        app_label = 'kral'
 
 # vim: ai ts=4 sts=4 et sw=4
