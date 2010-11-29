@@ -10,8 +10,9 @@ class ProcessTweet(Task):
         logger = self.get_logger(**kwargs)
         content = json.loads(data)
         user_id = content["user"].get('id_str', None)
+        urls = content['entities']['urls']
         if user_id is not None:
-            for url in urls:
+            for url in urls: #this sin't defined at this point
                 if url['expanded_url']:
                     ExpandURL(url['expanded_url'])
                 else:
