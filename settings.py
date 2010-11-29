@@ -1,5 +1,4 @@
-import os,djcelery
-djcelery.setup_loader()
+import os
 PROJECT_PATH = os.path.realpath(os.path.dirname(__file__))
 
 DEBUG = True
@@ -64,11 +63,18 @@ INSTALLED_APPS = (
 #    'django.contrib.comments',
 #    'django.contrib.admin',
     'south',
-    'djcelery',
     'kral',
 )
 
+#User agent to fake when scraping data
 USER_AGENT="Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.7.6) Gecko/20050512 Firefox"
+
+#AMPQ Server Info
+BROKER_HOST = "127.0.0.1"
+BROKER_PORT = 5672
+BROKER_VHOST = "/"
+BROKER_USER = "guest"
+BROKER_PASSWORD = "guest"
 
 #Load installation specific settings/passwords from external file with restrictive permissions
 execfile(os.path.join(PROJECT_PATH,'.private-settings'))
