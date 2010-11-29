@@ -1,4 +1,5 @@
-import os
+import os,djcelery
+djcelery.setup_loader()
 PROJECT_PATH = os.path.realpath(os.path.dirname(__file__))
 
 DEBUG = True
@@ -63,6 +64,7 @@ INSTALLED_APPS = (
 #    'django.contrib.comments',
 #    'django.contrib.admin',
     'south',
+    'djcelery',
     'kral',
 )
 
