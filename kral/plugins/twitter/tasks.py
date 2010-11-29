@@ -1,6 +1,5 @@
 import httplib,urlparse,pycurl,json,time,re,sys,time,datetime,os,threading
 from celery.task.base import Task
-from celery.decorators import task
 from django.conf import settings
 from models import *
 from kral.models import *
@@ -64,6 +63,7 @@ class ProcessTweet(Task):
                 )
                 twitter_tweet.save()
                 logger.info("Saved new tweet: %s" % (content["id_str"]))
+                return True
             except:
                 logger.info("ERROR - Unable to save tweet %s" % (content["id_str"]))
 
@@ -86,6 +86,7 @@ class ExpandURL(Task):
         if n > 3 or current_url == None:
             ProcessURL(url).delay()
             logger.info("Expanded URL \"%s\" to \"%s\"" % (original_url,url))
+            return True
         else:
             ExpandUrl(current_url, n).delay()
 
@@ -103,6 +104,7 @@ class ProcessURL(Task):
             )
             weblink.save()
             logger.info("Added record for new URL: \"%s\"" % (url))
+            return True
 
 tasks.register(ProcessTweet)
 tasks.register(ProcessURL)

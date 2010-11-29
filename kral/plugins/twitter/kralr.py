@@ -1,6 +1,8 @@
 import httplib,pycurl,json
 from django.conf import settings
+from celery.registry import tasks
 from tasks import ProcessTweet
+tasks.register(ProcessTweet)
 
 class Twitter():
     def __init__(self,query):
