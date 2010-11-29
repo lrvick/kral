@@ -14,9 +14,9 @@ class ProcessTweet(Task):
         if user_id is not None:
             for url in urls: #this sin't defined at this point
                 if url['expanded_url']:
-                    ExpandURL(url['expanded_url'])
+                    ExpandURL.delay(url['expanded_url'])
                 else:
-                    ExpandURL(url['url'])
+                    ExpandURL.delay(url['url'])
             try:
                 twitter_user = TwitterUser.objects.get(user_id=user_id)
                 twitter_user.total_tweets = content["user"]["statuses_count"],
@@ -85,11 +85,11 @@ class ExpandURL(Task):
         current_url = response.getheader('Location')
         n += 1
         if n > 3 or current_url == None:
-            ProcessURL(url).delay()
+            ProcessURL.delay(url)
             logger.info("Expanded URL \"%s\" to \"%s\"" % (original_url,url))
             return True
         else:
-            ExpandUrl(current_url, n).delay()
+            ExpandURL.delay(current_url, n)
 
 class ProcessURL(Task):
     def run(self,url,**kwargs):
