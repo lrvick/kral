@@ -3,7 +3,23 @@ from celery.task.base import Task
 from django.conf import settings
 from models import *
 from kral.models import *
+from tasks import *
+from kral.tasks import *
 from celery.registry import tasks
+
+class Twitter(Task):
+    def run(self,query, **kwargs):
+        self.buffer = ""
+        self.stream = pycurl.Curl()
+        self.stream.setopt(pycurl.USERPWD, "%s:%s" % (settings.TWITTER_USER, settings.TWITTER_PASS))
+        self.stream.setopt(pycurl.URL, "http://stream.twitter.com/1/statuses/filter.json?track=%s" % (query))
+        self.stream.setopt(pycurl.WRITEFUNCTION, self.on_receive)
+        self.stream.perform()
+    def on_receive(self, data):
+        self.buffer += data
+        if data.endswith("\r\n") and self.buffer.strip():
+            ProcessTweet.delay(self.buffer)
+            self.buffer = ""
 
 class ProcessTweet(Task):
     def run(self, data, **kwargs):
@@ -67,48 +83,5 @@ class ProcessTweet(Task):
                 return True
             except:
                 logger.info("ERROR - Unable to save tweet %s" % (content["id_str"]))
-
-class ExpandURL(Task):
-    def run(self,url,n=1,original_url=None,**kwargs):
-        if n == 1:
-            original_url = url
-        logger = self.get_logger(**kwargs)
-        headers = {"User-Agent": "Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.7.6) Gecko/20050512 Firefox"}
-        parsed_url = urlparse.urlsplit(url)
-        request = urlparse.urlunsplit(('', '', parsed_url.path, parsed_url.query, parsed_url.fragment))
-        connection = httplib.HTTPConnection(parsed_url.netloc)
-        try : 
-            connection.request('HEAD', request, "", headers)
-            response = connection.getresponse()
-        except:
-            return "Connection request failed"
-        current_url = response.getheader('Location')
-        n += 1
-        if n > 3 or current_url == None:
-            ProcessURL.delay(url)
-            logger.info("Expanded URL \"%s\" to \"%s\"" % (original_url,url))
-            return True
-        else:
-            ExpandURL.delay(current_url, n)
-
-class ProcessURL(Task):
-    def run(self,url,**kwargs):
-        logger = self.get_logger(**kwargs)
-        try:
-            old_link = WebLink.objects.get(url=url)
-            old_link.total_mentions += 1
-            old_link.save()
-            logger.info("Recorded mention of known URL: \"%s\"" % (url))
-        except:
-            weblink = WebLink(
-                url = url,
-            )
-            weblink.save()
-            logger.info("Added record for new URL: \"%s\"" % (url))
-            return True
-
-tasks.register(ProcessTweet)
-tasks.register(ProcessURL)
-tasks.register(ExpandURL)
 
 #vim: ai ts=4 sts=4 et sw=4

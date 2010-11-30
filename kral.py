@@ -7,7 +7,7 @@ from django.utils import importlib
 from django.db.models import get_model
 
 for plugin in [x for x in os.listdir(os.path.join(settings.PROJECT_PATH,'kral/plugins')) if not x.startswith('__')]:
-    exec('from kral.plugins.'+plugin+'.kralr import *')
+    exec('from kral.plugins.'+plugin+'.tasks import *')
 
 QUERY="love"
 
@@ -53,6 +53,6 @@ class Interface(threading.Thread):
 #Interface().start()
 #this needs to be dynamic:
 
-twitter_kralr = Twitter(QUERY)
+Twitter.delay(QUERY)
 
 #vim: ai ts=4 sts=4 et sw=4
