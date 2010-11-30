@@ -9,3 +9,4 @@
 .private-settings
 django.wsgi
 migrations/*
+celerybeat-schedule

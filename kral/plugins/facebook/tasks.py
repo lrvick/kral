@@ -1,15 +1,15 @@
-from celery.task import PeriodicTask
+from celery.task import PeriodicTask, Task
 from datetime import timedelta, datetime
 from models import FacebookUser, FacebookStatus
 import urllib2
 import json
 
 class Facebook(PeriodicTask):
-    run_every = timedelta(seconds=30)
-    self.query = query
-    self.url = "https://graph.facebook.com/search?q=%s&type=post" % self.query 
-    self.task = ProcessFBStatus.apply_async(args=[self.url, self.type])
-    def run(self, url, type, **kwargs):
+    run_every = timedelta(seconds=5)
+    def run(self, **kwargs):
+        self.query = 'love' # temporarily hardcoded until we start using the Query model
+        self.url = "https://graph.facebook.com/search?q=%s&type=post" % self.query 
+        self.task = ProcessFBStatus.apply_async(args=[self.url, self.type])
         logger = self.get_logger(**kwargs)
         try:
             data = json.loads(urllib2.urlopen(url).read())
@@ -22,8 +22,8 @@ class Facebook(PeriodicTask):
             ProcessFBStatus.delay(item)
    
 class ProcessFBStatus(Task):
-    self.type = 'status'
     def run(self, item, **kwargs):
+        self.type = 'status'
         if item['type'] == type:
             d = {}
             #'to' and 'attribution' are special cases
