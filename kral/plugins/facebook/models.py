@@ -13,7 +13,7 @@ class FacebookUser(models.Model):
         app_label = "kral"
 
 class FacebookStatus(models.Model):
-    status_id = models.IntegerField()
+    status_id = models.CharField(max_length=255)
     from_user = models.ForeignKey(FacebookUser, null=True, blank=True)
     #to_user = models.ForeignKey(FacebookUser, null=True, blank=True)
     message = models.TextField()
@@ -23,7 +23,7 @@ class FacebookStatus(models.Model):
     attribution = models.CharField(max_length=255, blank=True)
 
     def __unicode__(self):
-        return message[:20]
+        return self.message[:20]
 
     class Meta:
         app_label = "kral"

@@ -52,7 +52,7 @@ class ProcessFBStatus(PeriodicTask):
                 #save status to db if new
                 fbstatus, created = FacebookStatus.objects.get_or_create(**d) 
                 if created:
-                    logger.info("Saved new FacebookStatus: %s %s" % (fbstatus.status_id, fbstatus.message)
+                    logger.info("Saved new FacebookStatus: %s %s" % (fbstatus.status_id, fbstatus.message))
 
 # vim: ai ts=4 sts=4 et sw=4
  
