@@ -27,15 +27,14 @@ class ProcessFBStatus(PeriodicTask):
             if item['type'] == type:
                 d = {}
                 
-                #'to' and 'attirbution' are special cases
-                if item.has_key('to'): d.update({'to': item['to']}) #dict of users              
+                #'to' and 'attribution' are special cases
+                
                 #TODO: save new users if 'to' exists
+                #if item.has_key('to'): d.update({'to': item['to']}) #dict of users              
 
                 if item.has_key('attribution'): d.update({'attribution': item['attribution']})
                 
                 d.update({ #default attributes
-                    'from_user_id' :  item['from']['id'],
-                    'from_user_name' : items['from']['name'],
                     'updated_time' : datetime.strptime(item['updated_time'], time_format),
                     'created_time' : datetime.strptime(item['created_time'], time_format),
                     'message' : item['message'],
@@ -44,16 +43,16 @@ class ProcessFBStatus(PeriodicTask):
                 })
         
                 #save user if new
-                try:
-                    user = FacebookUser.objects.get(user_id=d['from_user_id'], name=d['from_user_name'])
-                except FacebookUser.ObjectDoesNotExist:
-                    user = FacebookUser()
-                    user.user_id = d['from_user_id']
-                    user.name = d['from_user_name']
-                    user.save()
+                user, created = FacebookUser.objects.get_or_create(user_id=item['from']['id'], name=item['from']['name'])
+                if created:
+                    logger.info("Saved new FacebookUser: %s %s" % (user.user_id, user.name))
+
+                d.update({'from_user': user})
 
                 #save status to db if new
-               
+                fbstatus, created = FacebookStatus.objects.get_or_create(**d) 
+                if created:
+                    logger.info("Saved new FacebookStatus: %s %s" % (fbstatus.status_id, fbstatus.message)
 
 # vim: ai ts=4 sts=4 et sw=4
  
