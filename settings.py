@@ -79,7 +79,7 @@ BROKER_PORT = 5672
 BROKER_VHOST = "/"
 BROKER_USER = "guest"
 BROKER_PASSWORD = "guest"
-CELERY_IMPORTS = ("kral.plugins.twitter.tasks",)
+CELERY_IMPORTS = ("kral.plugins.twitter.tasks", "kral.plugins.facebook.tasks")
 
 #Load installation specific settings/passwords from external file with restrictive permissions
 execfile(os.path.join(PROJECT_PATH,'.private-settings'))

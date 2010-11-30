@@ -14,10 +14,14 @@ class FacebookUser(models.Model):
 
 class FacebookStatus(models.Model):
     status_id = models.IntegerField()
-    from_user = models.ForeignKey(FacebookUser)
+    from_user = models.ForeignKey(FacebookUser, null=True, blank=True)
+    to_user = models.ForeignKey(FacebookUser, null=True, blank=True)
     message = models.TextField()
+    created_time = models.DateTimeField()
     updated_time = models.DateTimeField()
-    
+    type = models.CharField(max_length=255)
+    attribution = models.CharField(max_length=255, blank=True)
+
     def __unicode__(self):
         return message[:20]
 

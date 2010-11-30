@@ -54,5 +54,7 @@ class Interface(threading.Thread):
 #this needs to be dynamic:
 
 Twitter.delay(QUERY)
+#twitter_kralr = Twitter(QUERY)
+facebook_kralr = Facebook(QUERY)
 
 #vim: ai ts=4 sts=4 et sw=4
