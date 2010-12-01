@@ -5,26 +5,34 @@ import urllib2
 import json
 
 class Facebook(PeriodicTask):
-    run_every = timedelta(seconds=5)
-    def run(self, **kwargs):
-        self.query = 'love' # temporarily hardcoded until we start using the Query model
-        self.url = "https://graph.facebook.com/search?q=%s&type=post" % self.query 
-        self.task = ProcessFBStatus.apply_async(args=[self.url, self.type])
+    
+    run_every = timedelta(seconds=30)
+     
+    def run(self, query="love", **kwargs): #temp hardcoded query
         logger = self.get_logger(**kwargs)
+        logger.info("Executing every 30 seconds")
+        
+        url = "https://graph.facebook.com/search?q=%s&type=post" % query 
+        
         try:
             data = json.loads(urllib2.urlopen(url).read())
         except Exception, e:
             return
+        
         paging = data['paging'] #next page / previous page urls
         items = data['data']
-        time_format = "%Y-%m-%dT%H:%M:%S+0000"
+        
         for item in items:
-            ProcessFBStatus.delay(item)
+            ProcessFBPost.delay(item)
    
-class ProcessFBStatus(Task):
+class ProcessFBPost(Task):
+    
     def run(self, item, **kwargs):
-        self.type = 'status'
-        if item['type'] == type:
+        logger = self.get_logger(**kwargs)
+        
+        time_format = "%Y-%m-%dT%H:%M:%S+0000"
+        
+        if item['type'] == "status": 
             d = {}
             #'to' and 'attribution' are special cases
                 

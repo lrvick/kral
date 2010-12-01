@@ -55,6 +55,6 @@ class Interface(threading.Thread):
 
 #Twitter.delay(QUERY)
 #twitter_kralr = Twitter(QUERY)
-#facebook_kralr = Facebook(QUERY)
+facebook_kralr = Facebook.delay() 
 
 #vim: ai ts=4 sts=4 et sw=4
