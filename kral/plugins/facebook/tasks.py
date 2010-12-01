@@ -6,7 +6,7 @@ import json
 
 class Facebook(PeriodicTask):
     
-    run_every = timedelta(seconds=30)
+    run_every = timedelta(seconds=10)
      
     def run(self, query="love", **kwargs): #temp hardcoded query
         logger = self.get_logger(**kwargs)
