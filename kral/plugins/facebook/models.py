@@ -36,7 +36,11 @@ class FacebookPost(models.Model):
     source = models.URLField(blank=True, help_text="A URL to a Flash movie or video file to be embedded within the post.")
     icon = models.URLField(blank=True, help_text="A link to an icon representing the type of this post.")
     attribution = models.CharField(max_length=255, blank=True, help_text="A string indicating which application was used to create this post.")
-    
+   
+    properties_name = models.CharField(max_length=255, blank=True)
+    properties_href = models.URLField(blank=True)
+    properties_text = models.TextField(blank=True)
+
     #actions NOTE: not sure if this is relevant to store
     #privacy NOTE: same as above
     
