@@ -24,18 +24,18 @@ class FacebookUser(models.Model):
 class FacebookPost(models.Model):
     #Fields are following the Graph API Post properties.
     likes = models.IntegerField(help_text="Number of likes on this post.", null=True, blank=True)
-    post_id = models.CharField(max_length="255", help_text="The Post ID", blank=True)
-    from_user = models.ForeignKey(FacebookUser, null=True, blank=True, help_text="Information about the user who posted the message.")
-    to_users = models.ManyToManyField(FacebookUser, null=True, blank=True, help_text="Profiles mentioned or targeted in this post.")
+    post_id = models.CharField(max_length=255, help_text="The Post ID", blank=True)
+    from_user = models.ForeignKey(FacebookUser, null=True, blank=True, help_text="Information about the user who posted the message.", related_name="from")
+    to_users = models.ManyToManyField(FacebookUser, null=True, blank=True, help_text="Profiles mentioned or targeted in this post.", related_name="to")
     message = models.TextField(help_text="The message.", blank=True)
     picture_link = models.URLField(blank=True, help_text="If available, a link to the picture included with this post.")
     link = models.URLField(blank=True, help_text="The link attached to this post.")
-    name = models.CharField(blank=True, help_text="The name of the link.")
-    caption = models.CharField(blank=True, help_text="The caption of the link.")
+    name = models.CharField(max_length=255, blank=True, help_text="The name of the link.")
+    caption = models.CharField(max_length=255, blank=True, help_text="The caption of the link.")
     description = models.TextField(help_text="A description of the link.")
     source = models.URLField(blank=True, help_text="A URL to a Flash movie or video file to be embedded within the post.")
     icon = models.URLField(blank=True, help_text="A link to an icon representing the type of this post.")
-    attribution = models.CharField(blank=True, help_text="A string indicating which application was used to create this post.")
+    attribution = models.CharField(max_length=255, blank=True, help_text="A string indicating which application was used to create this post.")
     
     #actions NOTE: not sure if this is relevant to store
     #privacy NOTE: same as above
@@ -47,7 +47,7 @@ class FacebookPost(models.Model):
     #connection_likes = models.ManyToManyField(FacebookUser, help_text="The people who liked this post.") 
     #connection_comments = models.ManyToManyField(FacebookComment, help_text="Comments made on this post.)"
 
-    post_type = models.CharField(max_lengt=255, help_text="Type of post i.e status, video, link, picture")
+    post_type = models.CharField(max_length=255, help_text="Type of post i.e status, video, link, picture")
 
     def __unicode__(self):
         return self.message[:20]
