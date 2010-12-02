@@ -1,5 +1,5 @@
         This is at least a partial credits-file of people that have
-        contributed to the sokral project. It is sorted by name and
+        contributed to the kral project. It is sorted by name and
         formatted to allow easy grepping and beautification by
         scripts.  The fields are: name (N), email (E), web-address
         (W), PGP key ID and fingerprint (P), description (D), and
@@ -20,3 +20,4 @@ D: Cleaning, helping with Django rebuild
 
 N: Titus Soporan
 E: tsoporan@gmail.com
+D: Facebook module, cleanup, other magic.
