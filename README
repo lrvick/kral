@@ -1,17 +1,20 @@
- Sokral < http://sokral.us >
+ Kral < http://github.com/UdderWeb/kral >
 
-WHAT IS SOKRAL?
-	A social media crawling and search engine, built on Django. Aims to
-	provide an easy and flexible framework for building applications that
-	thrive on a wide range of constantly updated social data. Sokral will get
-	you up and running with the ability to search and scrape media and
-	information from a wide range of social networking services.
+WHAT IS KRAL?
+	A social media crawling engine, built on Django. 
+    Aims to provide a framework for rapidly collect data from social networks
+    based on defined search criteria. Built to be a foundation for a wide 
+    range of social applications, and to bring accountability  and public 
+    to the way in which data is collected and promote others to get involved
+    to help us collect as much data as possible with the fewest resources.
 
 CURRENT FEATURES:
 
- * Ability to harvest user profile information, tweets, and URLs from Twitter
+ * Ability to harvest user information, and posts from Twitter and 
 
  * Ability to expand all short-urls into full real URLs.
+
+ * Modular design. Easily add or disable "kraling" for different social networks.
 
 NOTES
 
@@ -20,6 +23,4 @@ NOTES
 	This is by no means production-ready code. Do not actually use it in
 	production unless you wish to be eaten by a grue.
 
-  Visit http://sokral.us for a live populated demo of the latest source code.
-
-	Questions/Comments? Please check us out on IRC via irc://udderweb.com/#sokral
+	Questions/Comments? Please check us out on IRC via irc://udderweb.com/#uw
