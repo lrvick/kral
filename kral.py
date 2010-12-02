@@ -6,8 +6,8 @@ from django.conf import settings
 from django.utils import importlib
 from django.db.models import get_model
 
-for plugin in [x for x in os.listdir(os.path.join(settings.PROJECT_PATH,'plugins')) if not x.startswith('__')]:
-    exec('from plugins.'+plugin+'.tasks import *')
+for plugin in [x for x in os.listdir(os.path.join(settings.PROJECT_PATH,'kral/plugins')) if not x.startswith('__')]:
+    exec('from kral.plugins.'+plugin+'.tasks import *')
 
 QUERY="love"
 
