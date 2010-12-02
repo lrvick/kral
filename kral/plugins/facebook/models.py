@@ -28,18 +28,18 @@ class FacebookPost(models.Model):
     from_user = models.ForeignKey(FacebookUser, null=True, blank=True, help_text="Information about the user who posted the message.", related_name="fromuser")
     to_users = models.ManyToManyField(FacebookUser, null=True, blank=True, help_text="Profiles mentioned or targeted in this post.", related_name="tousers")
     message = models.TextField(help_text="The message.", blank=True)
-    picture_link = models.URLField(blank=True, help_text="If available, a link to the picture included with this post.")
-    link = models.URLField(blank=True, help_text="The link attached to this post.")
-    name = models.CharField(max_length=255, blank=True, help_text="The name of the link.")
-    caption = models.CharField(max_length=255, blank=True, help_text="The caption of the link.")
+    picture_link = models.URLField(blank=True, help_text="If available, a link to the picture included with this post.", max_length=500)
+    link = models.URLField(blank=True, help_text="The link attached to this post.", max_length=500)
+    name = models.CharField(max_length=500, blank=True, help_text="The name of the link.")
+    caption = models.TextField(blank=True, help_text="The caption of the link.")
     description = models.TextField(help_text="A description of the link.")
-    source = models.URLField(blank=True, help_text="A URL to a Flash movie or video file to be embedded within the post.")
-    icon = models.URLField(blank=True, help_text="A link to an icon representing the type of this post.")
+    source = models.URLField(blank=True, help_text="A URL to a Flash movie or video file to be embedded within the post.", max_length=500)
+    icon = models.URLField(blank=True, help_text="A link to an icon representing the type of this post.", max_length=500)
     attribution = models.CharField(max_length=255, blank=True, help_text="A string indicating which application was used to create this post.")
    
     properties_name = models.CharField(max_length=255, blank=True)
-    properties_href = models.URLField(blank=True)
-    properties_text = models.TextField(blank=True)
+    properties_href = models.URLField(max_length=255, blank=True)
+    properties_text = models.TextField(max_length=255, blank=True)
 
     #actions NOTE: not sure if this is relevant to store
     #privacy NOTE: same as above
@@ -54,7 +54,7 @@ class FacebookPost(models.Model):
     post_type = models.CharField(max_length=255, help_text="Type of post i.e status, video, link, picture")
 
     def __unicode__(self):
-        return self.message[:20]
+        return self.post_id
 
     class Meta:
         app_label = "kral"
