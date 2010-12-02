@@ -25,8 +25,8 @@ class FacebookPost(models.Model):
     #Fields are following the Graph API Post properties.
     likes = models.IntegerField(help_text="Number of likes on this post.", null=True, blank=True)
     post_id = models.CharField(max_length=255, help_text="The Post ID", blank=True)
-    from_user = models.ForeignKey(FacebookUser, null=True, blank=True, help_text="Information about the user who posted the message.", related_name="from")
-    to_users = models.ManyToManyField(FacebookUser, null=True, blank=True, help_text="Profiles mentioned or targeted in this post.", related_name="to")
+    from_user = models.ForeignKey(FacebookUser, null=True, blank=True, help_text="Information about the user who posted the message.", related_name="fromuser")
+    to_users = models.ManyToManyField(FacebookUser, null=True, blank=True, help_text="Profiles mentioned or targeted in this post.", related_name="tousers")
     message = models.TextField(help_text="The message.", blank=True)
     picture_link = models.URLField(blank=True, help_text="If available, a link to the picture included with this post.")
     link = models.URLField(blank=True, help_text="The link attached to this post.")
