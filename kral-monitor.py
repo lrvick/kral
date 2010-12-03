@@ -50,9 +50,11 @@ class Interface(threading.Thread):
             #print "real height is: %s" % (rows)
             #print "half height is: %s" % (getHeightFromPercent(50))
 
-#Interface().start()
+Interface().start()
 #this needs to be dynamic:
 
-Twitter.delay(QUERY)
+#Twitter.delay(QUERY)
+#twitter_kralr = Twitter(QUERY)
+#facebook_kralr = Facebook.delay() 
 
 #vim: ai ts=4 sts=4 et sw=4
