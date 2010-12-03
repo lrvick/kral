@@ -1,5 +1,25 @@
 from django.db import models
 
+#'attribution',
+#'caption',
+#'created_time',
+#'description',
+#'from',
+#'icon',
+#'id',
+#'likes',
+#'link',
+#'message',
+#'name',
+#'picture',
+#'properties'
+#'source',
+#'to',
+#'type',
+#'updated_time'
+
+
+
 class FacebookUser(models.Model):
     user_id = models.CharField(max_length=255, help_text="The users ID.")
     name = models.CharField(max_length=255, help_text="The users name.") 
@@ -28,7 +48,7 @@ class FacebookPost(models.Model):
     from_user = models.ForeignKey(FacebookUser, null=True, blank=True, help_text="Information about the user who posted the message.", related_name="fromuser")
     to_users = models.ManyToManyField(FacebookUser, null=True, blank=True, help_text="Profiles mentioned or targeted in this post.", related_name="tousers")
     message = models.TextField(help_text="The message.", blank=True)
-    picture_link = models.URLField(blank=True, help_text="If available, a link to the picture included with this post.", max_length=500)
+    picture = models.URLField(blank=True, help_text="If available, a link to the picture included with this post.", max_length=500)
     link = models.URLField(blank=True, help_text="The link attached to this post.", max_length=500)
     name = models.CharField(max_length=500, blank=True, help_text="The name of the link.")
     caption = models.TextField(blank=True, help_text="The caption of the link.")
@@ -36,22 +56,11 @@ class FacebookPost(models.Model):
     source = models.URLField(blank=True, help_text="A URL to a Flash movie or video file to be embedded within the post.", max_length=500)
     icon = models.URLField(blank=True, help_text="A link to an icon representing the type of this post.", max_length=500)
     attribution = models.CharField(max_length=255, blank=True, help_text="A string indicating which application was used to create this post.")
-   
-    properties_name = models.CharField(max_length=255, blank=True)
-    properties_href = models.URLField(max_length=255, blank=True)
-    properties_text = models.TextField(max_length=255, blank=True)
-
-    #actions NOTE: not sure if this is relevant to store
-    #privacy NOTE: same as above
-    
     created_time = models.DateTimeField(null=True, blank=True)
     updated_time = models.DateTimeField(null=True, blank=True)
-    #targeting NOTE: needs manage_pages permission not sure if this is publically available 
-
+    type = models.CharField(max_length=255, help_text="Type of post i.e status, video, link, picture")
     #connection_likes = models.ManyToManyField(FacebookUser, help_text="The people who liked this post.") 
     #connection_comments = models.ManyToManyField(FacebookComment, help_text="Comments made on this post.)"
-
-    post_type = models.CharField(max_length=255, help_text="Type of post i.e status, video, link, picture")
 
     def __unicode__(self):
         return self.post_id
