@@ -3,7 +3,7 @@ from celery.task.base import Task
 from django.conf import settings
 from kral.models import *
 
-if not settings.KRALRS_ENABLED :
+if not hasattr(settings, "KRALRS_ENABLED"):
     for plugin in [x for x in os.listdir(os.path.join(settings.PROJECT_PATH,'kral/plugins')) if not x.startswith('__')]:
 	    exec('from kral.plugins.'+plugin+'.tasks import *')
 else:
