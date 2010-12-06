@@ -3,6 +3,16 @@ from celery.task.base import Task
 from django.conf import settings
 from kral.models import *
 
+if not settings.KRALRS_ENABLED :
+    for plugin in [x for x in os.listdir(os.path.join(settings.PROJECT_PATH,'kral/plugins')) if not x.startswith('__')]:
+	    exec('from kral.plugins.'+plugin+'.tasks import *')
+else:
+    for plugin in settings.KRALRS_ENABLED:
+        try:
+            exec('from kral.plugins.'+plugin+'.tasks import *')    
+        except ImportError:
+            raise ImportError('Module '+plugin+' does not exist')
+
 class ExpandURL(Task):
     def run(self,url,n=1,original_url=None,**kwargs):
         if n == 1:

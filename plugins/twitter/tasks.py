@@ -28,7 +28,7 @@ class ProcessTweet(Task):
         user_id = content["user"].get('id_str', None)
         urls = content['entities']['urls']
         if user_id is not None:
-            for url in urls: #this sin't defined at this point
+            for url in urls: 
                 if url['expanded_url']:
                     ExpandURL.delay(url['expanded_url'])
                 else:
