@@ -27,11 +27,11 @@ Questions/Comments? Please check us out on IRC via irc://udderweb.com/#uw
 
 ### KRALRS_ENABLED ###
 
-All kralrs are enabled by default. To only enable certian kralrs, list them in KRALRS_ENABLED in settings.py, seperated by commas
+All kralrs are enabled by default. To only enable certian kralrs, list them in KRALRS_ENABLED as a list in settings.py
 
 Example (Only Facebook and Twitter Enabled):
 
-    KRALRS_ENABLED = "Twitter, Facebook"    
+    KRALRS_ENABLED = ["Twitter", "Facebook"]    
 
 
 
