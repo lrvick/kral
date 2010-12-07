@@ -1,5 +1,6 @@
 import httplib,urlparse,pycurl,json,time,re,sys,time,datetime,os,threading
 from celery.task.base import Task
+from celery.signals import worker_ready
 from django.conf import settings
 from models import *
 from kral.models import *
@@ -84,6 +85,9 @@ class ProcessTweet(Task):
             except:
                 logger.info("ERROR - Unable to save tweet %s" % (content["id_str"]))
 
-Twitter.delay()
+def apply_at_worker_start(**kwargs):
+    Twitter.delay('android');   
+
+worker_ready.connect(apply_at_worker_start) 
 
 #vim: ai ts=4 sts=4 et sw=4
