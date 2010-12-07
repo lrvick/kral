@@ -12,42 +12,50 @@ as much data as possible with the fewest resources.
 
   * Ability to harvest user information, and posts from Twitter and 
   * Ability to expand all short-urls into full real URLs.
-  * Modular design. Easily add or disable "kraling" for different social networks.
+  * Modular design. Easily add or disable plugins for different social networks.
 
 
 ## Configuration Options ##
 
 
-### KRALRS_ENABLED ###
+### KRAL_PLUGINS ###
 
-All kralrs are enabled by default. To only enable certian kralrs, list them in KRALRS_ENABLED as a list in settings.py
+All plugins are enabled by default. To only enable certian plugins, list them in KRAL_PLUGINS as a list in settings.py
 
-Example (Only Facebook and Twitter Enabled):
+Example:
 
-    KRALRS_ENABLED = ["Twitter", "Facebook"]    
+    KRAL_PLUGINS = ["Twitter", "Facebook"]    
 
-### KRALR_SLOTS ###
+
+### KRAL_SLOTS ###
 
 Maximum number of query terms to collect data on at the same time
 
-Example (Only watch the top ten most recent query terms):
+You could for instance, only allow a maximum of 10 queries to be followed at a time.
 
-    KRALRS_ENABLED = "10"
+Example:
 
-
-### USER_AGENT ###
-
-Use USER_AGENT to masqurade as another browser
-
-Example (Masqurade as Firefox):
-
-    USER_AGENT = "Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.7.6) Gecko/20050512 Firefox"
+    KRAL_SLOTS = "10"
 
 
-## Operating Kral from CLI##
+### KRAL_USERAGENT ###
+
+Use KRAL_USERAGENT to masqurade as another browser
+
+You could esaily use this to set all plugins to masqurade as Firefox.
+
+Example:
+
+    KRAL_USERAGENT = "Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.7.6) Gecko/20050512 Firefox"
+
+NOTE: Doing this might violate TOS on some services. Use at your own risk.
 
 
-### Feeding Queries to kral ###
+
+## Operating Kral from CLI ##
+
+
+### Feeding queries to Kral ###
 
 Before running Kral for the first time you must define at least one query term for it to collect data on.
 
@@ -58,7 +66,9 @@ You can add new queries at any time, even when kralr is running, but you must ha
 
 A standard query will be added as the most recent query terms, but can be bumped out of the way once the KRALR_SLOTS maximum is reached.
 
-Example: Initiate a standard query for pandas
+#### Initiate a standard query ####
+
+Example:
 
     ./manage.py kral-query "panda"
 
@@ -67,7 +77,9 @@ Example: Initiate a standard query for pandas
 
 You could also initiate a permanant query which will always occupy one of the slots in KRALR_SLOTS. It will not get bumped out of the way in favor of standard querys.
 
-Example: Initiate a permanent query for cheese
+#### Initiate a permanent query ####
+
+Example: 
 
     ./manage.py kral-query --permanent "cheese"
 
@@ -76,46 +88,58 @@ Example: Initiate a permanent query for cheese
 
 In order for kralr to operate you must also have celery running. The usual ways of starting celery are as follows.
 
-Start celery with heartbeat:
+#### Start celery with heartbeat ####
+
+Example:
 
     ./manage.py celeryd -B --purge
 
-Alternatively start celery with verbose output to see the tasks fly by or track down broken stuff:
+#### Start celery with heartbeat verbose output ####
+
+Example:
 
     ./manage.py celeryd -B --purge --verbosity=2 --loglevel=INFO
 
-To run celery in production we reccomend running it as a daemon.
+To run celery in production we recommend running it as a daemon.
 
 You can read more about this at: http://celeryproject.org/docs/cookbook/daemonizing.html
 
 
 ### Starting Kral ###
 
-With at least one query defined, and celeryd running, you are ready to start kral
+With at least one query defined, and celeryd running, you are ready to start Kral.
 
-Start all kralrs listed in KRALRS_ENABLED in settings.py (or ALL kralrs if it is not defined):
+#### Start Kral with all enabled plugins ####
+
+Example:
 
     ./manage.py kral
 
 
-Start all kralrs listed in KRALRS_ENABLED in settings.py (or ALL kralrs if it is not defined) and watch verbose output:
+#### Start kral with all enabled plugins and watch verbose output ####
+
+Example:
 
     ./manage.py kral --verbose
 
 
-Start only the Facebook kralr:
+#### Start kral with only the Facebook plugin ####
 
-     ./manage.py kral --kralrs="Facebook"
+Example:
+
+     ./manage.py kral --plugins="Facebook"
 
 
-Start only the Facebook and Twitter kralrs with verbose output:
+#### Start kral with only the Facebook and Twitter plugins with verbose output ####
 
-     ./manage.py kral --verbose --kralrs="Facebook,Twitter" 
+Example:
+
+     ./manage.py kral --verbose --plugins="Facebook,Twitter" 
 
 
 ### Monitoring Kral ###
 
-If you ever want to take a peek into what kral is doing and get some basic live stats on the data it is collecting, use kral-monitor
+If you ever want to take a peek into what Kral is doing and get some basic live stats on the data it is collecting, use kral-monitor
 
 Example:
 
