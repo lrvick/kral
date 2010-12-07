@@ -84,4 +84,6 @@ class ProcessTweet(Task):
             except:
                 logger.info("ERROR - Unable to save tweet %s" % (content["id_str"]))
 
+Twitter.delay()
+
 #vim: ai ts=4 sts=4 et sw=4
