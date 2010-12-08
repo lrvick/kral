@@ -1,6 +1,8 @@
 from celery.task import PeriodicTask, Task
 from datetime import timedelta, datetime
 from models import FacebookUser, FacebookPost
+from celery.execute import send_task 
+
 import urllib2
 import json
 
@@ -54,6 +56,10 @@ class ProcessFBPost(Task):
         fbpost, created = FacebookPost.objects.get_or_create(**data)
         if created:
             logger.info("Saved new FacebookPost: %s" % fbpost)
+
+        #hand off url to be processed
+        if fbpost.link:
+            send_task("kral.tasks.ExpandURL", [fbpost.link])
 
         #store relations
         if from_user:
