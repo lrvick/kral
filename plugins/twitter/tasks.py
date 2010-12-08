@@ -7,6 +7,7 @@ from kral.models import *
 from tasks import *
 from kral.tasks import *
 from celery.registry import tasks
+from celery.execute import send_task
 
 class Twitter(Task):
     def run(self,query, **kwargs):
@@ -31,9 +32,9 @@ class ProcessTweet(Task):
         if user_id is not None:
             for url in urls: 
                 if url['expanded_url']:
-                    ExpandURL.delay(url['expanded_url'])
+                    send_task("kral.tasks.ExpandURL", [url['expanded_url']])
                 else:
-                    ExpandURL.delay(url['url'])
+                    send_task("kral.tasks.ExpandURL", [url['url']])
             try:
                 twitter_user = TwitterUser.objects.get(user_id=user_id)
                 twitter_user.total_tweets = content["user"]["statuses_count"],
@@ -86,7 +87,7 @@ class ProcessTweet(Task):
                 logger.info("ERROR - Unable to save tweet %s" % (content["id_str"]))
 
 def apply_at_worker_start(**kwargs):
-    Twitter.delay('android');   
+    Twitter.delay('love');   
 
 worker_ready.connect(apply_at_worker_start) 
 

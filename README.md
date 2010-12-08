@@ -86,7 +86,9 @@ Example:
 
 ### Starting Celeryd ###
 
-In order for kralr to operate you must also have celery running. The usual ways of starting celery are as follows.
+In order to start collecting data with Kral, you just need to run celery, and celery will do the rest. 
+
+The usual ways of starting celery are as follows.
 
 #### Start celery with heartbeat ####
 
@@ -103,38 +105,6 @@ Example:
 To run celery in production we recommend running it as a daemon.
 
 You can read more about this at: http://celeryproject.org/docs/cookbook/daemonizing.html
-
-
-### Starting Kral ###
-
-With at least one query defined, and celeryd running, you are ready to start Kral.
-
-#### Start Kral with all enabled plugins ####
-
-Example:
-
-    ./manage.py kral
-
-
-#### Start kral with all enabled plugins and watch verbose output ####
-
-Example:
-
-    ./manage.py kral --verbose
-
-
-#### Start kral with only the Facebook plugin ####
-
-Example:
-
-     ./manage.py kral --plugins="Facebook"
-
-
-#### Start kral with only the Facebook and Twitter plugins with verbose output ####
-
-Example:
-
-     ./manage.py kral --verbose --plugins="Facebook,Twitter" 
 
 
 ### Monitoring Kral ###
