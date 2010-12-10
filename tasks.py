@@ -45,11 +45,8 @@ class ProcessURL(Task):
             old_link.total_mentions += 1
             old_link.save()
             logger.info("Recorded mention of known URL: \"%s\"" % (url))
-        except:
-            weblink = WebLink(
-                url = url,
-            )
-            weblink.save()
+        except WebLink.DoesNotExist:
+            weblink = WebLink.objects.create(url=url)
             logger.info("Added record for new URL: \"%s\"" % (url))
             return True
 
