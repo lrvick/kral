@@ -37,6 +37,17 @@ class ProcessFBPost(Task):
         data, from_user, to_users = {}, {}, {}
         
         if item.has_key('properties'): item.pop('properties') 
+       
+        if item.has_key('application'):
+            application = item['application']
+            if application:
+                data['application_name'] = application['name']
+                data['application_id'] = application['id']
+            item.pop('application') 
+
+        if item.has_key('likes'):
+            data['likes'] = item['likes']['count']
+            item.pop('likes')
         
         #build fields/attrib dict to unpack to model - do some name mangling to fit model fields
         for k,v in item.items():
@@ -53,6 +64,8 @@ class ProcessFBPost(Task):
             else:
                 data.update({ k : v })
 
+        
+        print data
         fbpost, created = FacebookPost.objects.get_or_create(**data)
         if created:
             logger.info("Saved new FacebookPost: %s" % fbpost)

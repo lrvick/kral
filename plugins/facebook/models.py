@@ -43,7 +43,7 @@ class FacebookUser(models.Model):
 
 class FacebookPost(models.Model):
     #Fields are following the Graph API Post properties.
-    likes = models.IntegerField(help_text="Number of likes on this post.", null=True, blank=True)
+    likes = models.IntegerField(help_text="Number of likes on this post.", null=True, blank=True) #store relationships later
     post_id = models.CharField(max_length=255, help_text="The Post ID", blank=True)
     from_user = models.ForeignKey(FacebookUser, null=True, blank=True, help_text="Information about the user who posted the message.", related_name="fromuser")
     to_users = models.ManyToManyField(FacebookUser, null=True, blank=True, help_text="Profiles mentioned or targeted in this post.", related_name="tousers")
@@ -62,6 +62,9 @@ class FacebookPost(models.Model):
     #connection_likes = models.ManyToManyField(FacebookUser, help_text="The people who liked this post.") 
     #connection_comments = models.ManyToManyField(FacebookComment, help_text="Comments made on this post.)"
 
+    application_name = models.CharField(max_length=500, blank=True, null=True, help_text="The application used to make this post.")
+    application_id = models.CharField(max_length=500, blank=True, null=True, help_text="The application's ID.")
+    
     def __unicode__(self):
         return self.post_id
 
