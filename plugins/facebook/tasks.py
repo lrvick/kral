@@ -64,8 +64,6 @@ class ProcessFBPost(Task):
             else:
                 data.update({ k : v })
 
-        
-        print data
         fbpost, created = FacebookPost.objects.get_or_create(**data)
         if created:
             logger.info("Saved new FacebookPost: %s" % fbpost)
