@@ -88,7 +88,7 @@ Example:
 
 #### Permanent Query ####
 
-You could also initiate a permanant query which will always occupy one of the slots in KRALR_SLOTS. It will not get bumped out of the way in favor of standard querys.
+You could also initiate a permanant query which will bypass KRALR_SLOTS and never get bumped out of the way in favor of standard querys. Kralr will always devote resourced to collecting data on permanent queries any time it is running.
 
 #### Initiate a permanent query ####
 
