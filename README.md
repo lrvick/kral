@@ -146,7 +146,7 @@ Example:
 
 For simpilicity and to prevent abuse, this is all built to be transparent on the front end.
 
-In order to fetch data for a particular query for any enabeled social network one only needs to call a json url with the name of the plugin followed by the query, followed by a dot, followed by the format you wish to get the results back in for that given query.
+In order to fetch data for a particular query for any enabeled social network one only needs to call a url with the name of the plugin, followed by the query, followed by a dot, followed by the format you want the results returned in.
 
 For instance, to return a JSON feed of all the latest tweets related to the term "Android" you would do:
 
