@@ -1,4 +1,4 @@
-# KRAL #
+# Kral #
 
 A social media crawling engine, built on Django. 
 
@@ -46,7 +46,7 @@ Example:
     KRAL_TIME = "5"
 
 
-With KRAL_TIME set to 5, in the case that all KRAL_SLOTS are full, a new search would have to wait 5 seconds before KRAL will start checking for any new data. While waiting a query in line would only retreive any existing data from the database. 
+With KRAL_TIME set to 5, in the case that all KRAL_SLOTS are full, a new search would have to wait 5 seconds before Kral will start checking for any new data. While waiting a query in line would only retreive any existing data from the database. 
 
 The time to set this to will all depend on your amount of traffic and resources.
 
