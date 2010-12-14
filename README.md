@@ -37,7 +37,7 @@ Example:
 
     KRAL_SLOTS = "10"
 
-### KRAL_WAIT ###
+### KRAL_TIME ###
 
 Minimum amount of time data must be collected on a given query before it can be bumped out of line.
 
