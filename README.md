@@ -37,6 +37,19 @@ Example:
 
     KRAL_SLOTS = "10"
 
+### KRAL_WAIT ###
+
+Minimum amount of time data must be collected on a given query before it can be bumped out of line.
+
+Example:
+
+    KRAL_TIME = "5"
+
+
+With KRAL_TIME set to 5, in the case that all KRAL_SLOTS are full, a new search would have to wait 5 seconds before KRAL will start checking for any new data. While waiting a query in line would only retreive any existing data from the database. 
+
+The time to set this to will all depend on your amount of traffic and resources.
+
 
 ### KRAL_USERAGENT ###
 
@@ -114,6 +127,36 @@ If you ever want to take a peek into what Kral is doing and get some basic live 
 Example:
 
      ./manage.py kral-monitor
+
+
+## Operating Kral from Web API ##
+
+### Setup ###
+
+In order to use the Kral web API you must first include kral.urls in your main urls.py file for your project
+
+Example: 
+
+    urlpatterns = patterns('',
+        (r'^kral/.*$', include('kral.urls')),
+    )
+
+
+### Running queries and fetching data ###
+
+For simpilicity and to prevent abuse, this is all built to be transparent on the front end.
+
+In order to fetch data for a particular query for any enabeled social network one only needs to call a json url with the name of the plugin followed by the query, followed by a dot, followed by the format you wish to get the results back in for that given query.
+
+For instance, to return a JSON feed of all the latest tweets related to the term "Android" you would do:
+
+    http://example.com/kral/twitter/Android.json
+
+Or if you wanted to return an RSS feed of all the latest mentions of Facebook mentions of "Rick Astley" you would do:
+
+    http://example.com/kral/facebook/Rick_Astley.rss
+
+All API requests will instantly retreive any matching data from the database, and also request Kral collect new data on this given topic, in respect to the KRAL_TIME and KRAL_SLOTS settings. 
 
 
 ## Notes ##
