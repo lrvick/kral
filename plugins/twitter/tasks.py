@@ -1,5 +1,5 @@
 import httplib,urlparse,pycurl,json,time,re,sys,time,datetime,os,threading
-from celery.task.base import Task
+from celery.task.base import PeriodicTask,Task
 from celery.signals import worker_ready
 from django.conf import settings
 from models import *
@@ -9,9 +9,20 @@ from kral.tasks import *
 from celery.registry import tasks
 from celery.execute import send_task
 
-#currently only searching for the latest query and not respecting multiple query slots.
+class Twitter(PeriodicTask):
+    run_every = settings.KRAL_WAIT
+    def run(self, **kwargs):
+        logger = self.get_logger(**kwargs)
+        if not hasattr(settings, 'KRAL_SLOTS'):
+            slots = 1
+        else:
+            slots = settings.KRAL_SLOTS
+        querys = Query.objects.order_by('-last_modified')[:slots]
+        for query in querys:
+            query_worker = ProcessTwitterFeed.delay(query)
+            logger.info("Started Twitter process for query: %s" % (query))
 
-class Twitter(Task):
+class ProcessTwitterFeed(Task):
     def run(self,query, **kwargs):
         self.query = query
         self.buffer = ""
@@ -92,10 +103,10 @@ class ProcessTweet(Task):
             except Exception, e:
                 logger.info("ERROR  - Unable to save tweet %s - %s" % (content["id_str"],e))
 
-def apply_at_worker_start(**kwargs):
-    query = str(Query.objects.order_by('last_modified').reverse()[0].text)
-    Twitter.delay(query);
+#def apply_at_worker_start(**kwargs):
+#    query = str(Query.objects.order_by('last_modified').reverse()[0].text)
+#    TwitterWatcher.delay(query);
  
-worker_ready.connect(apply_at_worker_start) 
+#worker_ready.connect(apply_at_worker_start) 
 
 #vim: ai ts=4 sts=4 et sw=4
