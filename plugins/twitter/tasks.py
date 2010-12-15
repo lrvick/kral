@@ -9,8 +9,11 @@ from kral.tasks import *
 from celery.registry import tasks
 from celery.execute import send_task
 
+#currently only searching for the latest query and not respecting multiple query slots.
+
 class Twitter(Task):
     def run(self,query, **kwargs):
+        self.query = query
         self.buffer = ""
         self.stream = pycurl.Curl()
         self.stream.setopt(pycurl.USERPWD, "%s:%s" % (settings.TWITTER_USER, settings.TWITTER_PASS))
@@ -20,11 +23,11 @@ class Twitter(Task):
     def on_receive(self, data):
         self.buffer += data
         if data.endswith("\r\n") and self.buffer.strip():
-            ProcessTweet.delay(self.buffer)
+            ProcessTweet.delay(self.buffer,self.query)
             self.buffer = ""
 
 class ProcessTweet(Task):
-    def run(self, data, **kwargs):
+    def run(self, data, query, **kwargs):
         logger = self.get_logger(**kwargs)
         content = json.loads(data)
         user_id = content["user"].get('id_str', None)
@@ -78,17 +81,21 @@ class ProcessTweet(Task):
                     #irt_status_id = content['in_reply_to_status_id'],
                     #irt_status_name = content['in_reply_to_status_name'],
                     #retweet_count = content['retweet_count'], 
-                    #geo = content['geo'], 
+                    #geo = content['geo'],
                 )
+                query_object = Query.objects.get(text=query)
                 twitter_tweet.save()
+                twitter_tweet.querys.add(query_object) #is the twitter_tweet saved at this point?
+                print twitter_tweet.querys
                 logger.info("Saved new tweet: %s" % (content["id_str"]))
                 return True
-            except:
-                logger.info("ERROR - Unable to save tweet %s" % (content["id_str"]))
+            except Exception, e:
+                logger.info("ERROR  - Unable to save tweet %s - %s" % (content["id_str"],e))
 
 def apply_at_worker_start(**kwargs):
-    Twitter.delay('love');   
-
+    query = str(Query.objects.order_by('last_modified').reverse()[0].text)
+    Twitter.delay(query);
+ 
 worker_ready.connect(apply_at_worker_start) 
 
 #vim: ai ts=4 sts=4 et sw=4

@@ -30,4 +30,3 @@ class Command(BaseCommand):
                     query.last_modified = datetime.datetime.now()
                     query.save() 
                     self.stdout.write("Moved existing query \"%s\" to first in queue for processing.\n" % q )
-

@@ -1,4 +1,5 @@
 from django.db import models
+from kral.models import *
 
 # -- Twitter variable defs --
 # user_name      | Do not trust, users can change it
@@ -55,7 +56,8 @@ class TwitterUser(models.Model):
         app_label = 'kral'
 
 class TwitterTweet(models.Model):
-    user_id = models.ForeignKey('TwitterUser')
+    querys = models.ManyToManyField(Query)
+    user_id = models.ForeignKey(TwitterUser)
     contributors = models.TextField(blank=True,null=True)
     tweet_id = models.BigIntegerField(primary_key=True,unique=True) 
     geo = models.CharField(max_length=250,blank=True,null=True)
