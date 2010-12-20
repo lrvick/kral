@@ -11,7 +11,7 @@ def serialize_model(request,model,query,format):
     query_object.last_modified = datetime.datetime.now()
     query_object.save() 
     query_object = Query.objects.get(text__iexact=query)
-    results = serializers.serialize(format, query_object.twittertweet_set.all()[:1])
+    results = serializers.serialize(format, query_object.twittertweet_set.all()[:10])
     return HttpResponse(results)
 
 

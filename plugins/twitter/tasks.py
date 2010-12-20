@@ -8,7 +8,6 @@ from tasks import *
 from kral.tasks import *
 from celery.registry import tasks
 from celery.execute import send_task
-from celery.task.control import inspect
 
 class Twitter(Task):
     def run(self,query, **kwargs):
@@ -20,6 +19,7 @@ class Twitter(Task):
         self.stream.setopt(pycurl.WRITEFUNCTION, self.on_receive)
         self.stream.perform()
     def on_receive(self, data):
+        print "Handing off to ProcessTweet, Query: %s" % self.query
         self.buffer += data
         if data.endswith("\r\n") and self.buffer.strip():
             ProcessTweet.delay(self.buffer,self.query)
@@ -27,6 +27,7 @@ class Twitter(Task):
 
 class ProcessTweet(Task):
     def run(self, data, query, **kwargs):
+        print "Processing: %s" % query
         logger = self.get_logger(**kwargs)
         content = json.loads(data)
         user_id = content["user"].get('id_str', None)

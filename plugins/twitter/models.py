@@ -77,5 +77,5 @@ class TwitterTweet(models.Model):
         return self.text[:20]
     class Meta:
         app_label = 'kral'
-
+        ordering = ('-last_modified',)
 # vim: ai ts=4 sts=4 et sw=4
