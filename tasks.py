@@ -14,6 +14,29 @@ else:
         except ImportError:
             raise ImportError('Module %s does not exist.' % plugin)
 
+#class PluginController(PeriodicTask):
+class PluginController(Task):
+#    run_every = settings.KRAL_WAIT
+    def run(self, **kwargs):
+        i = inspect()
+        logger = self.get_logger(**kwargs)
+        if not hasattr(settings, 'KRAL_SLOTS'):
+            slots = 1
+        else:
+            slots = settings.KRAL_SLOTS
+        querys = Query.objects.order_by('-last_modified')[:slots]
+        for query in querys:
+            logger.info("Checking if process is running for query: %s" % (query))
+            for process in i.active()[socket.gethostname()]:
+                if '(<Query: %s>,)' % query not in process['args']:
+                    query_worker = Twitter.delay(query)
+                    logger.info("Started Twitter process for query: %s" % (query))
+
+def apply_at_worker_start(**kwargs):
+    PluginController.delay();   
+worker_ready.connect(apply_at_worker_start) 
+
+
 class ExpandURL(Task):
     def run(self,url,n=1,original_url=None,**kwargs):
         if n == 1:

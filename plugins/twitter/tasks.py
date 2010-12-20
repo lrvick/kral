@@ -10,27 +10,6 @@ from celery.registry import tasks
 from celery.execute import send_task
 from celery.task.control import inspect
 
-# Task kral.plugins.twitter.tasks.Twitter[c332dbcb-7fd4-454b-acd3-d3c34523a0f6] raised exception: TypeError("'in <string>' requires string as left operand",)
-
-#ideas?  
-
-class PluginController(PeriodicTask):
-    run_every = settings.KRAL_WAIT
-    def run(self, **kwargs):
-        i = inspect()
-        logger = self.get_logger(**kwargs)
-        if not hasattr(settings, 'KRAL_SLOTS'):
-            slots = 1
-        else:
-            slots = settings.KRAL_SLOTS
-        querys = Query.objects.order_by('-last_modified')[:slots]
-        for query in querys:
-            logger.info("Checking if process is running for query: %s" % (query))
-            for process in i.active()[socket.gethostname()]:
-                if '(<Query: %s>,)' % query not in process['args']:
-                    query_worker = Twitter.delay(query)
-                    logger.info("Started Twitter process for query: %s" % (query))
-
 class Twitter(Task):
     def run(self,query, **kwargs):
         self.query = query
