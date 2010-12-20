@@ -20,10 +20,7 @@ class PluginController(Task):
     def run(self, **kwargs):
         i = inspect()
         logger = self.get_logger(**kwargs)
-        if not hasattr(settings, 'KRAL_SLOTS'):
-            slots = 1
-        else:
-            slots = settings.KRAL_SLOTS
+        slots = hasattr(settings, 'KRAL_SLOTS', 1):
         querys = Query.objects.order_by('-last_modified')[:slots]
         for query in querys:
             logger.info("Checking if process is running for query: %s" % (query))
