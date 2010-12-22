@@ -27,8 +27,10 @@ class PluginController(Task):
         slots = getattr(settings, 'KRAL_SLOTS', 1)
         querys = Query.objects.order_by('-last_modified')[:slots]
         print querys
-        for query in querys:
-            query_worker = Twitter.delay(query)
+        
+        #send off queries list to be handled off by each seperate plugins tasks
+        Twitter.delay(querys)  #hardcoded for now   
+    
         #logger.info("Checking if process is running for query: %s" % (query))
         #for process in i.active()[socket.gethostname()]:
         #     if '(<Query: %s>,)' % query not in process['args']:

@@ -10,24 +10,27 @@ from celery.registry import tasks
 from celery.execute import send_task
 
 class Twitter(Task):
-    def run(self,query, **kwargs):
-        self.query = query
+    def run(self, querys, **kwargs):
+        self.querys = querys
         self.buffer = ""
+        self.pf = str("track="+",".join([q.text for q in self.querys])) #this is weird, seems pycurl can't handle unicode
         self.stream = pycurl.Curl()
         self.stream.setopt(pycurl.USERPWD, "%s:%s" % (settings.TWITTER_USER, settings.TWITTER_PASS))
-        self.stream.setopt(pycurl.URL, "http://stream.twitter.com/1/statuses/filter.json?track=%s" % (query))
+        self.stream.setopt(pycurl.URL, "http://stream.twitter.com/1/statuses/filter.json")
+        self.stream.setopt(pycurl.POST, 1)
+        self.stream.setopt(pycurl.POSTFIELDS, self.pf)
         self.stream.setopt(pycurl.WRITEFUNCTION, self.on_receive)
         self.stream.perform()
+        self.stream.close()
     def on_receive(self, data):
-        print "Handing off to ProcessTweet, Query: %s" % self.query
         self.buffer += data
         if data.endswith("\r\n") and self.buffer.strip():
-            ProcessTweet.delay(self.buffer,self.query)
+            ProcessTweet.delay(self.buffer, self.querys)
             self.buffer = ""
 
 class ProcessTweet(Task):
-    def run(self, data, query, **kwargs):
-        print "Processing: %s" % query
+    def run(self, data, querys, **kwargs):
+        print "Processing: %s" % querys
         logger = self.get_logger(**kwargs)
         content = json.loads(data)
         user_id = content["user"].get('id_str', None)
@@ -83,12 +86,18 @@ class ProcessTweet(Task):
                     #retweet_count = content['retweet_count'], 
                     #geo = content['geo'],
                 )
-                query_object = Query.objects.get(text=query)
                 twitter_tweet.save()
-                twitter_tweet.querys.add(query_object) #is the twitter_tweet saved at this point?
-                print twitter_tweet.querys
+                querys_norm = [q.text.lower() for q in querys] 
+                split_text = [t.lower() for t in twitter_tweet.text.split()]
+
+                for q in querys_norm:
+                    if q in split_text:
+                        qobj = Query.objects.get(text=q)
+                        twitter_tweet.querys.add(qobj)
+                        print "Added relation: %s" % qobj
+                        print twitter_tweet.querys.all()
                 logger.info("Saved new tweet: %s" % (content["id_str"]))
-                return True
+                #return True
             except Exception, e:
                 logger.info("ERROR  - Unable to save tweet %s - %s" % (content["id_str"],e))
 
