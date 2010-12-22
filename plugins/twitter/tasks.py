@@ -88,15 +88,12 @@ class ProcessTweet(Task):
                     #geo = content['geo'],
                 )
                 twitter_tweet.save()
-                querys_norm = [q.text.lower() for q in querys] 
-                split_text = [t.lower() for t in twitter_tweet.text.split()]
 
-                for q in querys_norm:
-                    if q in split_text:
-                        qobj = Query.objects.get(text=q)
+                for q in [q.text.lower() for q in querys]:
+                    if q in twitter_tweet.text.lower():
+                        qobj = Query.objects.get(text__iexact=q)
                         twitter_tweet.querys.add(qobj)
                         print "Added relation: %s" % qobj
-                        print twitter_tweet.querys.all()
                 logger.info("Saved new tweet: %s" % (content["id_str"]))
                 #return True
             except Exception, e:
