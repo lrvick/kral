@@ -1,5 +1,5 @@
 import httplib,urlparse,time,re,sys,time,datetime,os
-from celery.task.base import Task
+from celery.task.base import PeriodicTask,Task
 from django.conf import settings
 from kral.models import *
 from celery.signals import worker_ready
@@ -17,18 +17,15 @@ else:
         except ImportError:
             raise ImportError('Module %s does not exist.' % plugin)
 
-#class PluginController(PeriodicTask):
-class PluginController(Task):
-#   run_every = settings.KRAL_WAIT
+class PluginController(PeriodicTask):
+    run_every = settings.KRAL_WAIT
     def run(self, **kwargs):
         #i = inspect()
         print "PLUGIN CONTROLLER CALLED"
         logger = self.get_logger(**kwargs)
         slots = getattr(settings, 'KRAL_SLOTS', 1)
         querys = Query.objects.order_by('-last_modified')[:slots]
-        print querys
-        for query in querys:
-            query_worker = Twitter.delay(query)
+        Twitter.delay(querys)
         #logger.info("Checking if process is running for query: %s" % (query))
         #for process in i.active()[socket.gethostname()]:
         #     if '(<Query: %s>,)' % query not in process['args']:

@@ -10,16 +10,23 @@ from celery.registry import tasks
 from celery.execute import send_task
 
 class Twitter(Task):
-    def run(self,query, **kwargs):
-        self.query = query
+    def run(self,querys, **kwargs):
+        for query in querys:
+            try:
+                self.formatted_querys += ",%s" % (query)
+            except:
+                self.formatted_querys = "%s" % (query)
+        logger = self.get_logger(**kwargs)
+        logger.info('Launching new Twitter for: %s' % (self.formatted_querys))
         self.buffer = ""
         self.stream = pycurl.Curl()
         self.stream.setopt(pycurl.USERPWD, "%s:%s" % (settings.TWITTER_USER, settings.TWITTER_PASS))
-        self.stream.setopt(pycurl.URL, "http://stream.twitter.com/1/statuses/filter.json?track=%s" % (query))
+        self.stream.setopt(pycurl.POST, 1)
+        self.stream.setopt(pycurl.HTTPPOST, [('track', str(self.formatted_querys)), ])
+        self.stream.setopt(pycurl.URL, "http://stream.twitter.com/1/statuses/filter.json")
         self.stream.setopt(pycurl.WRITEFUNCTION, self.on_receive)
         self.stream.perform()
     def on_receive(self, data):
-        print "Handing off to ProcessTweet, Query: %s" % self.query
         self.buffer += data
         if data.endswith("\r\n") and self.buffer.strip():
             ProcessTweet.delay(self.buffer,self.query)
@@ -92,4 +99,4 @@ class ProcessTweet(Task):
             except Exception, e:
                 logger.info("ERROR  - Unable to save tweet %s - %s" % (content["id_str"],e))
 
-#vim: ai ts=4 sts=4 et sw=4
+#vim: ai ts=5 sts=4 et sw=4
