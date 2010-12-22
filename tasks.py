@@ -24,8 +24,8 @@ class PluginController(PeriodicTask):
         print "PLUGIN CONTROLLER CALLED"
         logger = self.get_logger(**kwargs)
         slots = getattr(settings, 'KRAL_SLOTS', 1)
-        querys = Query.objects.order_by('-last_modified')[:slots]
-        Twitter.delay(querys)
+        self.querys = Query.objects.order_by('-last_modified')[:slots]
+        Twitter.delay(self.querys)
         #logger.info("Checking if process is running for query: %s" % (query))
         #for process in i.active()[socket.gethostname()]:
         #     if '(<Query: %s>,)' % query not in process['args']:
