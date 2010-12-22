@@ -1,5 +1,5 @@
 import httplib,urlparse,time,re,sys,time,datetime,os
-from celery.task.base import Task
+from celery.task.base import PeriodicTask,Task
 from django.conf import settings
 from kral.models import *
 from celery.signals import worker_ready
@@ -17,9 +17,8 @@ else:
         except ImportError:
             raise ImportError('Module %s does not exist.' % plugin)
 
-#class PluginController(PeriodicTask):
-class PluginController(Task):
-#   run_every = settings.KRAL_WAIT
+class PluginController(PeriodicTask):
+    run_every = settings.KRAL_WAIT
     def run(self, **kwargs):
         #i = inspect()
         print "PLUGIN CONTROLLER CALLED"
@@ -27,7 +26,6 @@ class PluginController(Task):
         slots = getattr(settings, 'KRAL_SLOTS', 1)
         querys = Query.objects.order_by('-last_modified')[:slots]
         print querys
-        
         #send off queries list to be handled off by each seperate plugins tasks
         Twitter.delay(querys)  #hardcoded for now   
     

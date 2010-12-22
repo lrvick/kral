@@ -12,6 +12,7 @@ from celery.execute import send_task
 class Twitter(Task):
     def run(self, querys, **kwargs):
         self.querys = querys
+        logger = self.get_logger(**kwargs)
         self.buffer = ""
         self.pf = str("track="+",".join([q.text for q in self.querys])) #this is weird, seems pycurl can't handle unicode
         self.stream = pycurl.Curl()
@@ -101,4 +102,4 @@ class ProcessTweet(Task):
             except Exception, e:
                 logger.info("ERROR  - Unable to save tweet %s - %s" % (content["id_str"],e))
 
-#vim: ai ts=4 sts=4 et sw=4
+#vim: ai ts=5 sts=4 et sw=4
