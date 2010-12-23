@@ -1,4 +1,4 @@
-import httplib,urlparse,pycurl,json,time,re,sys,time,datetime,os,socket
+import urllib2,urlparse,pycurl,json,time,re,sys,time,datetime,os,socket,base64
 from celery.task.base import PeriodicTask,Task
 from celery.signals import worker_ready
 from django.conf import settings
@@ -11,23 +11,13 @@ from celery.execute import send_task
 
 class Twitter(Task):
     def run(self, querys, **kwargs):
-        self.querys = querys
-        logger = self.get_logger(**kwargs)
-        self.buffer = ""
-        self.pf = str("track="+",".join([q.text for q in self.querys])) #this is weird, seems pycurl can't handle unicode
-        self.stream = pycurl.Curl()
-        self.stream.setopt(pycurl.USERPWD, "%s:%s" % (settings.TWITTER_USER, settings.TWITTER_PASS))
-        self.stream.setopt(pycurl.URL, "http://stream.twitter.com/1/statuses/filter.json")
-        self.stream.setopt(pycurl.POST, 1)
-        self.stream.setopt(pycurl.POSTFIELDS, self.pf)
-        self.stream.setopt(pycurl.WRITEFUNCTION, self.on_receive)
-        self.stream.perform()
-        self.stream.close()
-    def on_receive(self, data):
-        self.buffer += data
-        if data.endswith("\r\n") and self.buffer.strip():
-            ProcessTweet.delay(self.buffer, self.querys)
-            self.buffer = ""
+        self.query_post = str("track="+",".join([q.text for q in querys]))
+        self.request = urllib2.Request('http://stream.twitter.com/1/statuses/filter.json',self.query_post)
+        self.auth = base64.b64encode('%s:%s' % (settings.TWITTER_USER, settings.TWITTER_PASS))
+        self.request.add_header('Authorization', "basic %s" % self.auth)
+        self.stream = urllib2.urlopen(self.request)
+        for tweet in self.stream:
+            ProcessTweet.delay(tweet, querys)
 
 class ProcessTweet(Task):
     def run(self, data, querys, **kwargs):
