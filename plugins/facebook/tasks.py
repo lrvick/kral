@@ -1,43 +1,35 @@
+import urllib2,json
 from celery.task import PeriodicTask, Task
 from datetime import timedelta, datetime
 from models import FacebookUser, FacebookPost
 from celery.execute import send_task 
+from kral.tasks import *
 
-import urllib2
-import json
+class Facebook(Task):
+    def run(self, querys, **kwargs):
+        for query in querys:
+            FacebookFeed.delay(query)        
 
-class Facebook(PeriodicTask):
-    
-    run_every = 10 #run every 10s
-     
-    def run(self, query="love", **kwargs): #temp hardcoded query
+class FacebookFeed(Task):
+    def run(self, query, **kwargs):
         logger = self.get_logger(**kwargs)
         logger.info("Executing every 10 seconds...")
-
-        url = "https://graph.facebook.com/search?q=%s&type=post&limit=100" % query #get 100 at a time 
-        
+        url = "https://graph.facebook.com/search?q=%s&type=post&limit=100" % query
         try:
             data = json.loads(urllib2.urlopen(url).read())
         except Exception, e:
             return
-        
         paging = data['paging'] #next page / previous page urls
         items = data['data']
-        
         for item in items:
-            ProcessFBPost.delay(item)
+            ProcessFBPost.delay(item,query)
    
 class ProcessFBPost(Task):
-    
-    def run(self, item, **kwargs):
+    def run(self, item, query, **kwargs):
         logger = self.get_logger(**kwargs)
-        
         time_format = "%Y-%m-%dT%H:%M:%S+0000"
-
         data, from_user, to_users = {}, {}, {}
-        
         if item.has_key('properties'): item.pop('properties') 
-       
         if item.has_key('application'):
             application = item['application']
             if application:
@@ -90,9 +82,9 @@ class ProcessFBPost(Task):
                 )
                 fbpost.to_users.add(fbuser)
 
-        #update all relations and save obj
         fbpost.save()
-
+        qobj = Query.objects.get(text__iexact=query)
+        fbpost.querys.add(qobj)
+        print "Added relation: %s" % qobj
 
 # vim: ai ts=4 sts=4 et sw=4
- 

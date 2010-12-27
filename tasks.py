@@ -1,11 +1,14 @@
-import httplib,urlparse,time,re,sys,time,datetime,os
+import httplib,urlparse,time,re,sys,time,datetime,os,socket
 from celery.task.base import PeriodicTask,Task
 from django.conf import settings
 from kral.models import *
 from celery.signals import worker_ready
 from celery.task.control import inspect
-import socket
+from celery.execute import send_task
+
 from plugins.twitter.tasks import Twitter
+from plugins.facebook.tasks import Facebook
+
 if not hasattr(settings, "KRAL_PLUGINS"): 
     for plugin in [x.lower() for x in os.listdir(os.path.join(settings.PROJECT_PATH,'kral/plugins')) if not x.startswith('__')]:
 	    __import__('kral.plugins.'+plugin+'.tasks', fromlist=["*"])
@@ -26,14 +29,9 @@ class PluginController(PeriodicTask):
         slots = getattr(settings, 'KRAL_SLOTS', 1)
         querys = Query.objects.order_by('-last_modified')[:slots]
         print querys
-        #send off queries list to be handled off by each seperate plugins tasks
-        Twitter.delay(querys)  #hardcoded for now   
-    
-        #logger.info("Checking if process is running for query: %s" % (query))
-        #for process in i.active()[socket.gethostname()]:
-        #     if '(<Query: %s>,)' % query not in process['args']:
-        #         query_worker = Twitter.delay(query)
-        #         logger.info("Started Twitter process for query: %s" % (query))
+        for plugin in settings.KRAL_PLUGINS:
+            send_task("kral.plugins.%s.tasks.%s" % (plugin.lower(),plugin.capitalize()), [querys])
+            logger.info("Started %s task for query: %s" % (plugin,query))
 
 def apply_at_worker_start(**kwargs):
     PluginController.delay();   
