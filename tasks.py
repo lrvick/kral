@@ -1,13 +1,10 @@
-import httplib,urlparse,time,re,sys,time,datetime,os,socket
-from celery.task.base import PeriodicTask,Task
+import httplib,urlparse,re,sys,os
 from django.conf import settings
-from kral.models import *
-from celery.signals import worker_ready
 from celery.task.control import inspect
+from celery.task.base import PeriodicTask,Task
+from celery.signals import worker_ready
 from celery.execute import send_task
-
-from plugins.twitter.tasks import Twitter
-from plugins.facebook.tasks import Facebook
+from kral.models import *
 
 if not hasattr(settings, "KRAL_PLUGINS"): 
     for plugin in [x.lower() for x in os.listdir(os.path.join(settings.PROJECT_PATH,'kral/plugins')) if not x.startswith('__')]:
@@ -23,20 +20,13 @@ else:
 class PluginController(PeriodicTask):
     run_every = settings.KRAL_WAIT
     def run(self, **kwargs):
-        #i = inspect()
-        print "PLUGIN CONTROLLER CALLED"
         logger = self.get_logger(**kwargs)
         slots = getattr(settings, 'KRAL_SLOTS', 1)
+        plugins = getattr(settings, 'KRAL_PLUGINS', 1) ## TODO: replace one '1' a magical list of all installed plugins
         querys = Query.objects.order_by('-last_modified')[:slots]
-        print querys
-        for plugin in settings.KRAL_PLUGINS:
+        for plugin in plugins:
             send_task("kral.plugins.%s.tasks.%s" % (plugin.lower(),plugin.capitalize()), [querys])
             logger.info("Started %s task for query: %s" % (plugin,query))
-
-def apply_at_worker_start(**kwargs):
-    PluginController.delay();   
-worker_ready.connect(apply_at_worker_start) 
-
 
 class ExpandURL(Task):
     def run(self,url,n=1,original_url=None,**kwargs):
