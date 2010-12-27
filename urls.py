@@ -2,6 +2,7 @@ from django.conf.urls.defaults import *
 from views import *
 
 urlpatterns = patterns('',
+  (r'^(?P<query>\w+).(?P<format>\w+)$', serialize_model),
   (r'^(?P<model>\w+)/(?P<query>\w+).(?P<format>\w+)$', serialize_model),
 )
 

@@ -4,7 +4,7 @@ from datetime import datetime
 from models import FacebookUser, FacebookPost
 from celery.execute import send_task 
 from kral.tasks import *
-from kral.models import *
+from kral.models import Query
 
 class Facebook(Task):
     def run(self, querys, **kwargs):
@@ -85,8 +85,8 @@ class ProcessFBPost(Task):
                 fbpost.to_users.add(fbuser)
 
         fbpost.save()
-        qobj = Query.objects.get(text__iexact=query)
+        qobj = Query.objects.get(text__iexact=str(query))
         fbpost.querys.add(qobj)
-        print "Added relation: %s" % qobj
+        logger.info("Added relation for FBPost to: %s" % qobj)
         return "Saved Post/User"
 # vim: ai ts=4 sts=4 et sw=4
