@@ -14,7 +14,7 @@ class Facebook(Task):
 class FacebookFeed(Task):
     def run(self, query, **kwargs):
         logger = self.get_logger(**kwargs)
-        logger.info("Executing every 10 seconds...")
+        logger.debug("Executing every 10 seconds...")
         url = "https://graph.facebook.com/search?q=%s&type=post&limit=100" % query
         try:
             data = json.loads(urllib2.urlopen(url).read())
@@ -24,6 +24,7 @@ class FacebookFeed(Task):
         items = data['data']
         for item in items:
             ProcessFBPost.delay(item,query)
+        return "Checking Feed"
    
 class ProcessFBPost(Task):
     def run(self, item, query, **kwargs):
@@ -59,7 +60,7 @@ class ProcessFBPost(Task):
 
         fbpost, created = FacebookPost.objects.get_or_create(**data)
         if created:
-            logger.info("Saved new FacebookPost: %s" % fbpost)
+            logger.debug("Saved new FacebookPost: %s" % fbpost)
 
         #hand off url to be processed
         if fbpost.link:
@@ -72,7 +73,7 @@ class ProcessFBPost(Task):
                 name = from_user['name'],
             )
             if created:
-                logger.info("Saved new FacebookUser: %s" % fbuser)
+                logger.debug("Saved new FacebookUser: %s" % fbuser)
             fbpost.from_user =  fbuser
 
         if to_users:
@@ -87,5 +88,5 @@ class ProcessFBPost(Task):
         qobj = Query.objects.get(text__iexact=query)
         fbpost.querys.add(qobj)
         print "Added relation: %s" % qobj
-
+        return "Saved Post/User"
 # vim: ai ts=4 sts=4 et sw=4
