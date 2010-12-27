@@ -1,9 +1,10 @@
 import urllib2,json
 from celery.task import PeriodicTask, Task
-from datetime import timedelta, datetime
+from datetime import datetime
 from models import FacebookUser, FacebookPost
 from celery.execute import send_task 
 from kral.tasks import *
+from kral.models import *
 
 class Facebook(Task):
     def run(self, querys, **kwargs):

@@ -26,7 +26,8 @@ class PluginController(PeriodicTask):
         querys = Query.objects.order_by('-last_modified')[:slots]
         for plugin in plugins:
             send_task("kral.plugins.%s.tasks.%s" % (plugin.lower(),plugin.capitalize()), [querys])
-            logger.info("Started %s task for query: %s" % (plugin,query))
+            logger.debug("Started %s task for querys: %s" % (plugin,querys))
+        return "Refreshed Tasks"
 
 class ExpandURL(Task):
     def run(self,url,n=1,original_url=None,**kwargs):
@@ -46,8 +47,8 @@ class ExpandURL(Task):
         n += 1
         if n > 3 or current_url == None:
             ProcessURL.delay(url)
-            logger.info("Expanded URL \"%s\" to \"%s\"" % (original_url,url))
-            return True
+            logger.debug("Expanded URL \"%s\" to \"%s\"" % (original_url,url))
+            return "Expanded URL"
         else:
             ExpandURL.delay(current_url, n)
 
@@ -58,10 +59,11 @@ class ProcessURL(Task):
             old_link = WebLink.objects.get(url=url)
             old_link.total_mentions += 1
             old_link.save()
-            logger.info("Recorded mention of known URL: \"%s\"" % (url))
+            logger.debug("Recorded mention of known URL: \"%s\"" % (url))
+            return "Updated URL"
         except WebLink.DoesNotExist:
             weblink = WebLink.objects.create(url=url)
-            logger.info("Added record for new URL: \"%s\"" % (url))
-            return True
+            logger.debug("Added record for new URL: \"%s\"" % (url))
+            return "Added URL"
 
 #vim: ai ts=4 sts=4 et sw=4

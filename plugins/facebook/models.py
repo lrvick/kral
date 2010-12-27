@@ -1,47 +1,16 @@
 from django.db import models
-
-#'attribution',
-#'caption',
-#'created_time',
-#'description',
-#'from',
-#'icon',
-#'id',
-#'likes',
-#'link',
-#'message',
-#'name',
-#'picture',
-#'properties'
-#'source',
-#'to',
-#'type',
-#'updated_time'
-
-
+from kral.models import *
 
 class FacebookUser(models.Model):
     user_id = models.CharField(max_length=255, help_text="The users ID.")
     name = models.CharField(max_length=255, help_text="The users name.") 
-    
     def __unicode__(self):
         return self.name
-
     class Meta:
         app_label = "kral"
 
-#class FacebookComment(models.Model):
-#   comment_id = models.CharField(max_length=255, help_text="The comments id.")    
-#   from = models.ForeignKey(FacebookUser, help_text="The user who posted this comment.)"
-#   message = models.TextField()
-#   created_time = models.DateTimeField()
-
-
-#   def __unicode__(self):
-#       return self.message[:20]
-
-
 class FacebookPost(models.Model):
+    querys = models.ManyToManyField(Query)
     #Fields are following the Graph API Post properties.
     likes = models.IntegerField(help_text="Number of likes on this post.", null=True, blank=True) #store relationships later
     post_id = models.CharField(max_length=255, help_text="The Post ID", blank=True)
@@ -59,17 +28,11 @@ class FacebookPost(models.Model):
     created_time = models.DateTimeField(null=True, blank=True)
     updated_time = models.DateTimeField(null=True, blank=True)
     type = models.CharField(max_length=255, help_text="Type of post i.e status, video, link, picture")
-    #connection_likes = models.ManyToManyField(FacebookUser, help_text="The people who liked this post.") 
-    #connection_comments = models.ManyToManyField(FacebookComment, help_text="Comments made on this post.)"
-
     application_name = models.CharField(max_length=500, blank=True, null=True, help_text="The application used to make this post.")
     application_id = models.CharField(max_length=500, blank=True, null=True, help_text="The application's ID.")
-    
     def __unicode__(self):
         return self.post_id
-
     class Meta:
         app_label = "kral"
-
 
 # vim: ai ts=4 sts=4 et sw=4
