@@ -34,5 +34,6 @@ class FacebookPost(models.Model):
         return self.post_id
     class Meta:
         app_label = "kral"
+        ordering = ('-created_time',) 
 
 # vim: ai ts=4 sts=4 et sw=4

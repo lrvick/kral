@@ -13,6 +13,7 @@ from celery.execute import send_task
 class Twitter(Task):
     def run(self, querys, **kwargs):
         self.query_post = str("track="+",".join([q.text for q in querys]))
+        print self.query_post
         self.request = urllib2.Request('http://stream.twitter.com/1/statuses/filter.json',self.query_post)
         self.auth = base64.b64encode('%s:%s' % (settings.TWITTER_USER, settings.TWITTER_PASS))
         self.request.add_header('Authorization', "basic %s" % self.auth)
@@ -53,7 +54,7 @@ class ProcessTweet(Task):
             twitter_user.save()
             logger.debug("Saved/Updated profile for Twitter user %s" % (content["user"]["screen_name"]))
             try:
-                twitter_tweet, created = TwitterTweet.objects.get_or_create (
+                twitter_tweet, created = TwitterTweet.objects.get_or_create(
                     date = datetime.fromtimestamp(time.mktime(time.strptime(content["created_at"],time_format))),
                     tweet_id = content["id_str"],
                     user_id = TwitterUser.objects.get(user_id=content["user"]["id_str"]),
@@ -69,12 +70,11 @@ class ProcessTweet(Task):
                     #geo = content['geo'],
                 )
                 twitter_tweet.save()
-                logger.info("Saved new tweet: %s with relation to %s" % (content["id_str"]))
                 for q in [q.text.lower() for q in querys]:
                     if q in twitter_tweet.text.lower():
                         qobj = Query.objects.get(text__iexact=q)
                         twitter_tweet.querys.add(qobj)
-                        logger.debug("Added relation for tweet %s to %s" % (qobj,content['id_str']))
+                        logger.debug("Added relation for tweet %s to %s" % (content['id_str'], qobj))
             except Exception, e:
                 logger.warning("ERROR  - Unable to save tweet %s - %s" % (content["id_str"],e))
 

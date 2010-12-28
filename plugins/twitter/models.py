@@ -33,7 +33,7 @@ SENTIMENT_CHOICES = (
 )
 
 class TwitterUser(models.Model):
-    user_id = models.BigIntegerField(primary_key=True,unique=True) 
+    user_id = models.BigIntegerField(unique=True) 
     user_name = models.CharField(max_length=100,blank=True) 
     real_name = models.CharField(max_length=100,blank=True)
     description = models.TextField(blank=True)
@@ -54,12 +54,13 @@ class TwitterUser(models.Model):
         return self.user_name
     class Meta:
         app_label = 'kral'
+        
 
 class TwitterTweet(models.Model):
-    querys = models.ManyToManyField(Query)
+    querys = models.ManyToManyField(Query, blank=True, null=True)
     user_id = models.ForeignKey(TwitterUser)
     contributors = models.TextField(blank=True,null=True)
-    tweet_id = models.BigIntegerField(primary_key=True,unique=True) 
+    tweet_id = models.BigIntegerField(unique=True) 
     geo = models.CharField(max_length=250,blank=True,null=True)
     place = models.CharField(max_length=100,blank=True,null=True)
     text = models.TextField()

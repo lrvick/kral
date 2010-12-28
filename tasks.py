@@ -6,14 +6,17 @@ from celery.signals import worker_ready
 from celery.execute import send_task
 from kral.models import *
 
+ALLPLUGINS = []
+
 if not hasattr(settings, "KRAL_PLUGINS"): 
     for plugin in [x.lower() for x in os.listdir(os.path.join(settings.PROJECT_PATH,'kral/plugins')) if not x.startswith('__')]:
-	    __import__('kral.plugins.'+plugin+'.tasks', fromlist=["*"])
+        __import__('kral.plugins.'+plugin+'.tasks', fromlist=["*"])
+        ALLPLUGINS.append(plugin.title())
 else:
     for plugin in settings.KRAL_PLUGINS:
         plugin = plugin.lower()
         try:
-	        __import__('kral.plugins.'+plugin+'.tasks', fromlist=["*"])
+            __import__('kral.plugins.'+plugin+'.tasks', fromlist=["*"])
         except ImportError:
             raise ImportError('Module %s does not exist.' % plugin)
 
@@ -22,11 +25,11 @@ class PluginController(PeriodicTask):
     def run(self, **kwargs):
         logger = self.get_logger(**kwargs)
         slots = getattr(settings, 'KRAL_SLOTS', 1)
-        plugins = getattr(settings, 'KRAL_PLUGINS', 1) ## TODO: replace one '1' a magical list of all installed plugins
+        plugins = getattr(settings, 'KRAL_PLUGINS', ALLPLUGINS) ## TODO: replace one '1' a magical list of all installed plugins
         querys = Query.objects.order_by('-last_modified')[:slots]
         for plugin in plugins:
-            send_task("kral.plugins.%s.tasks.%s" % (plugin.lower(),plugin.capitalize()), [querys])
-            logger.debug("Started %s task for querys: %s" % (plugin,querys))
+            send_task("kral.plugins.%s.tasks.%s" % (plugin.lower(), plugin.capitalize()), kwargs={'querys': querys })
+            logger.debug("Started %s task for querys: %s" % (plugin, querys))
         return "Refreshed Tasks"
 
 class ExpandURL(Task):
