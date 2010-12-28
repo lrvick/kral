@@ -12,12 +12,20 @@ from celery.execute import send_task
 
 class Twitter(Task):
     def run(self, querys, **kwargs):
+        logger = self.get_logger(**kwargs)
         self.query_post = str("track="+",".join([q.text for q in querys]))
         print self.query_post
         self.request = urllib2.Request('http://stream.twitter.com/1/statuses/filter.json',self.query_post)
         self.auth = base64.b64encode('%s:%s' % (settings.TWITTER_USER, settings.TWITTER_PASS))
         self.request.add_header('Authorization', "basic %s" % self.auth)
-        self.stream = urllib2.urlopen(self.request)
+        try:
+            self.stream = urllib2.urlopen(self.request)
+        except Exception,e:
+            if e.code == 420:
+                logger.error("Maximum API connections exceeded")
+            else:
+                logger.error("Invalid/null response from server: %s" % (e))
+            return False
         for tweet in self.stream:
             ProcessTweet.delay(tweet, querys)
 
@@ -76,6 +84,6 @@ class ProcessTweet(Task):
                                 send_task("kral.tasks.ExpandURL", [url['url'],query])
                         logger.debug("Added relation for tweet %s to %s" % (content['id_str'], qobj))
             except Exception, e:
-                logger.warning("ERROR  - Unable to save tweet %s - %s" % (content["id_str"],e))
+                logger.error("Unable to save tweet %s - %s" % (content["id_str"],e))
 
 #vim: ai ts=5 sts=4 et sw=4
