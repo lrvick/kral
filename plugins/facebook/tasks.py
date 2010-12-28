@@ -64,7 +64,7 @@ class ProcessFBPost(Task):
 
         #hand off url to be processed
         if fbpost.link:
-            send_task("kral.tasks.ExpandURL", [fbpost.link])
+            send_task("kral.tasks.ExpandURL", [fbpost.link,query])
 
         #store relations
         if from_user:
@@ -87,6 +87,6 @@ class ProcessFBPost(Task):
         fbpost.save()
         qobj = Query.objects.get(text__iexact=str(query))
         fbpost.querys.add(qobj)
-        logger.info("Added relation for FBPost to: %s" % qobj)
+        logger.debug("Added relation for FBPost to: %s" % qobj)
         return "Saved Post/User"
 # vim: ai ts=4 sts=4 et sw=4

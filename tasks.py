@@ -33,7 +33,7 @@ class PluginController(PeriodicTask):
         return "Refreshed Tasks"
 
 class ExpandURL(Task):
-    def run(self,url,n=1,original_url=None,**kwargs):
+    def run(self,url,query,n=1,original_url=None,**kwargs):
         if n == 1:
             original_url = url
         logger = self.get_logger(**kwargs)
@@ -49,24 +49,26 @@ class ExpandURL(Task):
         current_url = response.getheader('Location')
         n += 1
         if n > 3 or current_url == None:
-            ProcessURL.delay(url)
+            ProcessURL.delay(url,query)
             logger.debug("Expanded URL \"%s\" to \"%s\"" % (original_url,url))
             return "Expanded URL"
         else:
-            ExpandURL.delay(current_url, n)
+            ExpandURL.delay(current_url,query, n)
 
 class ProcessURL(Task):
-    def run(self,url,**kwargs):
+    def run(self,url,query,**kwargs):
         logger = self.get_logger(**kwargs)
         try:
             old_link = WebLink.objects.get(url=url)
             old_link.total_mentions += 1
             old_link.save()
             logger.debug("Recorded mention of known URL: \"%s\"" % (url))
-            return "Updated URL"
         except WebLink.DoesNotExist:
             weblink = WebLink.objects.create(url=url)
             logger.debug("Added record for new URL: \"%s\"" % (url))
-            return "Added URL"
+        qobj = Query.objects.get(text__iexact=str(query))
+        weblink.querys.add(qobj)
+        logger.debug("Added relation for weblink to: %s" % qobj)
+        return "Added/Updated URL"
 
 #vim: ai ts=4 sts=4 et sw=4

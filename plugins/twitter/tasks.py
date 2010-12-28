@@ -29,11 +29,6 @@ class ProcessTweet(Task):
         urls = content['entities']['urls']
         time_format = "%a %b %d %H:%M:%S +0000 %Y"
         if user_id is not None:
-            for url in urls: 
-                if url['expanded_url']:
-                    send_task("kral.tasks.ExpandURL", [url['expanded_url']])
-                else:
-                    send_task("kral.tasks.ExpandURL", [url['url']])
             twitter_user, created = TwitterUser.objects.get_or_create (
                 user_id = user_id,
                 user_name = content["user"]["screen_name"],
@@ -70,10 +65,15 @@ class ProcessTweet(Task):
                     #geo = content['geo'],
                 )
                 twitter_tweet.save()
-                for q in [q.text.lower() for q in querys]:
-                    if q in twitter_tweet.text.lower():
-                        qobj = Query.objects.get(text__iexact=q)
+                for query in [query.text.lower() for query in querys]:
+                    if query in twitter_tweet.text.lower():
+                        qobj = Query.objects.get(text__iexact=query)
                         twitter_tweet.querys.add(qobj)
+                        for url in urls: 
+                            if url['expanded_url']:
+                                send_task("kral.tasks.ExpandURL", [url['expanded_url'],query])
+                            else:
+                                send_task("kral.tasks.ExpandURL", [url['url'],query])
                         logger.debug("Added relation for tweet %s to %s" % (content['id_str'], qobj))
             except Exception, e:
                 logger.warning("ERROR  - Unable to save tweet %s - %s" % (content["id_str"],e))
