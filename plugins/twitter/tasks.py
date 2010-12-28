@@ -37,7 +37,7 @@ class ProcessTweet(Task):
         urls = content['entities']['urls']
         time_format = "%a %b %d %H:%M:%S +0000 %Y"
         if user_id is not None:
-            twitter_user, created = TwitterUser.objects.get_or_create (
+            twitter_user, created = TwitterUser.objects.get_or_create(
                 user_id = user_id,
                 user_name = content["user"]["screen_name"],
                 real_name = content["user"]["name"],

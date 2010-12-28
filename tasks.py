@@ -25,7 +25,7 @@ class PluginController(PeriodicTask):
     def run(self, **kwargs):
         logger = self.get_logger(**kwargs)
         slots = getattr(settings, 'KRAL_SLOTS', 1)
-        plugins = getattr(settings, 'KRAL_PLUGINS', ALLPLUGINS) ## TODO: replace one '1' a magical list of all installed plugins
+        plugins = getattr(settings, 'KRAL_PLUGINS', ALLPLUGINS) 
         querys = Query.objects.order_by('-last_modified')[:slots]
         for plugin in plugins:
             send_task("kral.plugins.%s.tasks.%s" % (plugin.lower(), plugin.capitalize()), kwargs={'querys': querys })
@@ -59,14 +59,14 @@ class ProcessURL(Task):
     def run(self,url,query,**kwargs):
         logger = self.get_logger(**kwargs)
         try:
-            old_link = WebLink.objects.get(url=url)
-            old_link.total_mentions += 1
-            old_link.save()
+            weblink = WebLink.objects.get(url=url)
+            weblink.total_mentions += 1
+            weblink.save()
             logger.debug("Recorded mention of known URL: \"%s\"" % (url))
         except WebLink.DoesNotExist:
             weblink = WebLink.objects.create(url=url)
             logger.debug("Added record for new URL: \"%s\"" % (url))
-        qobj = Query.objects.get(text__iexact=str(query))
+        qobj = Query.objects.get(text__iexact=unicode(query))
         weblink.querys.add(qobj)
         logger.debug("Added relation for weblink to: %s" % qobj)
         return "Added/Updated URL"
