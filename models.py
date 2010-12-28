@@ -9,7 +9,7 @@ class Query(models.Model):
        return self.text
 
 class WebLink(models.Model):
-    querys = models.ManyToManyField(Query)
+    querys = models.ManyToManyField(Query, related_name="weblink_set")
     url = models.CharField(unique=True,max_length=4000)
     title = models.CharField(max_length=255,blank=True)
     description = models.TextField(blank=True)

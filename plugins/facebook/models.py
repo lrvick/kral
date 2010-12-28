@@ -10,7 +10,7 @@ class FacebookUser(models.Model):
         app_label = "kral"
 
 class FacebookPost(models.Model):
-    querys = models.ManyToManyField(Query)
+    querys = models.ManyToManyField(Query, related_name="facebook_set")
     #Fields are following the Graph API Post properties.
     likes = models.IntegerField(help_text="Number of likes on this post.", null=True, blank=True) #store relationships later
     post_id = models.CharField(max_length=255, help_text="The Post ID", blank=True)

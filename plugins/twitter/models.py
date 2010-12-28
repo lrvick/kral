@@ -57,7 +57,7 @@ class TwitterUser(models.Model):
         
 
 class TwitterTweet(models.Model):
-    querys = models.ManyToManyField(Query, blank=True, null=True)
+    querys = models.ManyToManyField(Query, related_name="twitter_set")
     user_id = models.ForeignKey(TwitterUser)
     contributors = models.TextField(blank=True,null=True)
     tweet_id = models.BigIntegerField(unique=True) 
