@@ -5,7 +5,6 @@ from kral.plugins.twitter.models import *
 from kral.plugins.facebook.models import *
 from kral.models import *
 from django.conf import settings
-#currently hardcoding for twitter tweets only. will look at get_app / get_models for making it universal.
 
 def serialize_model(request,plugin,query,format):
     query_object,created = Query.objects.get_or_create(text__iexact=query) 

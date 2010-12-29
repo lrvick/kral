@@ -36,43 +36,47 @@ class ProcessTweet(Task):
         user_id = content["user"].get('id_str', None)
         urls = content['entities']['urls']
         time_format = "%a %b %d %H:%M:%S +0000 %Y"
-        if user_id is not None:
+        if user_id:
             twitter_user, created = TwitterUser.objects.get_or_create(
-                user_id = user_id,
-                user_name = content["user"]["screen_name"],
-                real_name = content["user"]["name"],
-                #location = content["user"]["location"],
-                avatar = content["user"]["profile_image_url"],
-                date = datetime.fromtimestamp(time.mktime(time.strptime(content["user"]["created_at"],time_format))),
-                language = content["user"]["lang"],
-                total_tweets = content["user"]["statuses_count"],
-                #time_zone = content["user"]["time_zone"],
-                listed = content["user"]["listed_count"],
-                following = content["user"]["friends_count"],
-                followers = content["user"]["followers_count"],
-                geo_enabled = content["user"]["geo_enabled"],
-                contributors_enabled = content["user"]["contributors_enabled"],
-                #utc_offset = content["user"]["utc_offset"],
+                user_id = user_id,#unique
+                defaults = {
+                    "user_name" : content["user"]["screen_name"],
+                    "real_name" : content["user"]["name"],
+                    #location = content["user"]["location"],
+                    "avatar" : content["user"]["profile_image_url"],
+                    "date" : datetime.fromtimestamp(time.mktime(time.strptime(content["user"]["created_at"],time_format))),
+                    "language" : content["user"]["lang"],
+                    "total_tweets" : content["user"]["statuses_count"],
+                    #time_zone = content["user"]["time_zone"],
+                    "listed" : content["user"]["listed_count"],
+                    "following" : content["user"]["friends_count"],
+                    "followers" : content["user"]["followers_count"],
+                    "geo_enabled" : content["user"]["geo_enabled"],
+                    "contributors_enabled" : content["user"]["contributors_enabled"],
+                    #utc_offset = content["user"]["utc_offset"],
+                }
             )
-            twitter_user.save()
+            #twitter_user.save()
             logger.debug("Saved/Updated profile for Twitter user %s" % (content["user"]["screen_name"]))
             try:
                 twitter_tweet, created = TwitterTweet.objects.get_or_create(
-                    date = datetime.fromtimestamp(time.mktime(time.strptime(content["created_at"],time_format))),
-                    tweet_id = content["id_str"],
-                    user_id = TwitterUser.objects.get(user_id=content["user"]["id_str"]),
-                    text = content["text"],
-                    #place = content["user"]["place"],
-                    truncated = content['truncated'], 
-                    geo = content["user"]["location"],
-                    contributors = content["contributors"],
-                    #retweeted = content['retweeted'], 
-                    #irt_status_id = content['in_reply_to_status_id'],
-                    #irt_status_name = content['in_reply_to_status_name'],
-                    #retweet_count = content['retweet_count'], 
-                    #geo = content['geo'],
+                    tweet_id = content["id_str"], #unique
+                    defaults = {
+                        "date": datetime.fromtimestamp(time.mktime(time.strptime(content["created_at"],time_format))),
+                        "user_id" : TwitterUser.objects.get(user_id=content["user"]["id_str"]),
+                        "text" : content["text"],
+                        #place = content["user"]["place"],
+                        "truncated" : content['truncated'], 
+                        "geo" : content["user"]["location"],
+                        "contributors" : content["contributors"],
+                        #retweeted = content['retweeted'], 
+                        #irt_status_id = content['in_reply_to_status_id'],
+                        #irt_status_name = content['in_reply_to_status_name'],
+                        #retweet_count = content['retweet_count'], 
+                        #geo = content['geo'],
+                    }
                 )
-                twitter_tweet.save()
+                #twitter_tweet.save()
                 for query in [query.text.lower() for query in querys]:
                     if query in twitter_tweet.text.lower():
                         qobj = Query.objects.get(text__iexact=query)
