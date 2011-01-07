@@ -1,4 +1,4 @@
-import urllib2,json
+import urllib2,json,time
 from celery.task import PeriodicTask, Task
 from datetime import datetime
 from models import FacebookUser, FacebookPost
@@ -12,18 +12,29 @@ class Facebook(Task):
             FacebookFeed.delay(query)        
 
 class FacebookFeed(Task):
-    def run(self, query, **kwargs):
+    def run(self,query,prev_url='none', **kwargs):
         logger = self.get_logger(**kwargs)
-        logger.debug("Executing every 10 seconds...")
-        url = "https://graph.facebook.com/search?q=%s&type=post&limit=100" % query
+        if prev_url == 'none':
+            url = "https://graph.facebook.com/search?q=%s&type=post&limit=25" % query
+        else:
+            url = prev_url
         try:
             data = json.loads(urllib2.urlopen(url).read())
         except Exception, e:
             return
-        paging = data['paging'] #next page / previous page urls
-        items = data['data']
-        for item in items:
-            ProcessFBPost.delay(item,query)
+        try:
+            paging = data['paging'] #next page / previous page urls
+	    prev_url = paging['previous']
+            items = data['data']
+            for item in items:
+                ProcessFBPost.delay(item,query)
+	except:
+	    prev_url = prev_url
+        try:
+	    items
+	except:
+            time.sleep(5)
+	FacebookFeed.delay(query,prev_url)
         return "Checking Feed"
    
 class ProcessFBPost(Task):
