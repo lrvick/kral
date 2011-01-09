@@ -66,17 +66,20 @@ class ExpandURL(Task):
 class ProcessURL(Task):
     def run(self,url,query,**kwargs):
         logger = self.get_logger(**kwargs)
-        try:
-            weblink = WebLink.objects.get(url=url)
+    
+        weblink, created = WebLink.objects.get_or_create(url=url)
+        if created:
+            logger.debug("Added record for new URL: \"%s\"" % (url))
+        else:
             weblink.total_mentions += 1
             weblink.save()
             logger.debug("Recorded mention of known URL: \"%s\"" % (url))
-        except WebLink.DoesNotExist:
-            weblink = WebLink.objects.create(url=url)
-            logger.debug("Added record for new URL: \"%s\"" % (url))
+        
         qobj = Query.objects.get(text__iexact=unicode(query))
         weblink.querys.add(qobj)
         logger.debug("Added relation for weblink to: %s" % qobj)
-        return "Added/Updated URL"
+        logger.debug("Added/Updated URL: %s" % url)
+
+
 
 #vim: ai ts=4 sts=4 et sw=4
