@@ -28,19 +28,19 @@ class PluginController(PeriodicTask):
         slots = getattr(settings, 'KRAL_SLOTS', 1)
         plugins = getattr(settings, 'KRAL_PLUGINS', ALLPLUGINS)
         querys = Query.objects.order_by('last_processed')[:slots]
+        
+        new_querys = True
+        
         for query in querys:
-            if cache.get(query.text):
+            if cache.has_key(query.text):
                 new_querys = False
-            else:
-                new_querys = True
+                break
         if new_querys:
             for plugin in plugins:
                 send_task("kral.plugins.%s.tasks.%s" % (plugin.lower(), plugin.capitalize()), kwargs={'querys': querys })
                 logger.debug("Started %s task for querys: %s" % (plugin, querys))
             cache.clear()
-            for query in querys:
-                cache.set(query.text,'1')
-                query.save()
+            cache_set = [cache.set(query.text, 1) for query in querys] 
             print "REREUNNING STUFFS!"
             return "Refreshed tasks"
         else:
