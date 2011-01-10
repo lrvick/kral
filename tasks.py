@@ -5,6 +5,7 @@ from celery.task.base import PeriodicTask,Task
 from celery.signals import worker_ready
 from celery.execute import send_task
 from kral.models import *
+from django.core.cache import cache
 
 ALLPLUGINS = []
 
@@ -25,12 +26,14 @@ class PluginController(PeriodicTask):
     def run(self, **kwargs):
         logger = self.get_logger(**kwargs)
         slots = getattr(settings, 'KRAL_SLOTS', 1)
-        plugins = getattr(settings, 'KRAL_PLUGINS', ALLPLUGINS) 
-	querys = Query.objects.order_by('last_processed')[:slots]
+        plugins = getattr(settings, 'KRAL_PLUGINS', ALLPLUGINS)
+        querys = Query.objects.order_by('last_processed')[:slots]
         for plugin in plugins:
             send_task("kral.plugins.%s.tasks.%s" % (plugin.lower(), plugin.capitalize()), kwargs={'querys': querys })
             logger.debug("Started %s task for querys: %s" % (plugin, querys))
+        cache.clear()
         for query in querys:
+            cache.set(query,'1')
             query.save()
         return "Refreshed Tasks"
 

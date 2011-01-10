@@ -1,14 +1,20 @@
 import urllib2,json,time,datetime
 from celery.task import PeriodicTask, Task
-from models import FacebookUser, FacebookPost
+from celery.task import control
+from celery.contrib.abortable import AbortableTask
+from celery.task.control import inspect
 from celery.execute import send_task 
+from models import FacebookUser, FacebookPost
 from kral.tasks import *
 from kral.models import Query
+from django.core.cache import cache
 
 class Facebook(Task):
-    def run(self, querys, **kwargs):
+    def run(self, querys, abort=False, **kwargs):
+        i = inspect()
         for query in querys:
-            FacebookFeed.delay(query)        
+            FacebookFeed.delay(query)
+            
 
 class FacebookFeed(Task):
     def run(self,query,prev_url='none', **kwargs):
@@ -20,21 +26,25 @@ class FacebookFeed(Task):
         try:
             data = json.loads(urllib2.urlopen(url).read())
         except Exception, e:
-            return
+            return None
         try:
             paging = data['paging'] #next page / previous page urls
-	    prev_url = paging['previous']
+            prev_url = paging['previous']
             items = data['data']
-            for item in items:
-                ProcessFBPost.delay(item,query)
-	except:
-	    prev_url = prev_url
-        try:
-	    items
-	except:
-            time.sleep(5)
-	FacebookFeed.delay(query,prev_url)
-        return "Checking Feed"
+        except:
+            prev_url = prev_url
+        time.sleep(5)
+        if cache.get(query):
+            FacebookFeed.delay(query,prev_url)
+            try:
+                items
+                for item in items:
+                    ProcessFBPost.delay(item,query)
+                return "Spawned Processors"
+            except:
+                return "No data"
+        else:
+            return "Exiting Feed"
    
 class ProcessFBPost(Task):
     def run(self, item, query, **kwargs):
