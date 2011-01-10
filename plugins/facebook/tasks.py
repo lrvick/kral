@@ -33,7 +33,7 @@ class FacebookFeed(Task):
             items = data['data']
         except:
             prev_url = prev_url
-        time.sleep(5)
+            time.sleep(5)
         if cache.get(query):
             FacebookFeed.delay(query,prev_url)
             try:
