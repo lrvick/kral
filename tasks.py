@@ -29,7 +29,7 @@ class PluginController(PeriodicTask):
         plugins = getattr(settings, 'KRAL_PLUGINS', ALLPLUGINS)
         querys = Query.objects.order_by('last_processed')[:slots]
         for query in querys:
-            if cache.get(query):
+            if cache.get(query.text):
                 new_querys = False
             else:
                 new_querys = True
@@ -39,7 +39,7 @@ class PluginController(PeriodicTask):
                 logger.debug("Started %s task for querys: %s" % (plugin, querys))
             cache.clear()
             for query in querys:
-                cache.set(query,'1')
+                cache.set(query.text,'1')
                 query.save()
             print "REREUNNING STUFFS!"
             return "Refreshed tasks"
