@@ -28,14 +28,24 @@ class PluginController(PeriodicTask):
         slots = getattr(settings, 'KRAL_SLOTS', 1)
         plugins = getattr(settings, 'KRAL_PLUGINS', ALLPLUGINS)
         querys = Query.objects.order_by('last_processed')[:slots]
-        for plugin in plugins:
-            send_task("kral.plugins.%s.tasks.%s" % (plugin.lower(), plugin.capitalize()), kwargs={'querys': querys })
-            logger.debug("Started %s task for querys: %s" % (plugin, querys))
-        cache.clear()
         for query in querys:
-            cache.set(query,'1')
-            query.save()
-        return "Refreshed Tasks"
+            if cache.get(query):
+                new_querys = False
+            else:
+                new_querys = True
+        if new_querys:
+            for plugin in plugins:
+                send_task("kral.plugins.%s.tasks.%s" % (plugin.lower(), plugin.capitalize()), kwargs={'querys': querys })
+                logger.debug("Started %s task for querys: %s" % (plugin, querys))
+            cache.clear()
+            for query in querys:
+                cache.set(query,'1')
+                query.save()
+            print "REREUNNING STUFFS!"
+            return "Refreshed tasks"
+        else:
+            print "NO MORE STUFFS TO RUN"
+            return "No refresh needed"
 
 class ExpandURL(Task):
     def run(self,url,query,n=1,original_url=None,**kwargs):
