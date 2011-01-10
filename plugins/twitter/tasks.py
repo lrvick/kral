@@ -1,5 +1,4 @@
 import urllib2,urlparse,pycurl,json,time,re,sys,time,os,socket,base64
-from datetime import datetime
 from celery.task.base import PeriodicTask,Task
 from celery.signals import worker_ready
 from django.conf import settings
@@ -44,7 +43,7 @@ class ProcessTweet(Task):
                     "real_name" : content["user"]["name"],
                     #location = content["user"]["location"],
                     "avatar" : content["user"]["profile_image_url"],
-                    "date" : datetime.fromtimestamp(time.mktime(time.strptime(content["user"]["created_at"],time_format))),
+                    "date" : datetime.datetime.fromtimestamp(time.mktime(time.strptime(content["user"]["created_at"],time_format))),
                     "language" : content["user"]["lang"],
                     "total_tweets" : content["user"]["statuses_count"],
                     #time_zone = content["user"]["time_zone"],
@@ -62,7 +61,7 @@ class ProcessTweet(Task):
                 twitter_tweet, created = TwitterTweet.objects.get_or_create(
                     tweet_id = content["id_str"], #unique
                     defaults = {
-                        "date": datetime.fromtimestamp(time.mktime(time.strptime(content["created_at"],time_format))),
+                        "date": datetime.datetime.fromtimestamp(time.mktime(time.strptime(content["created_at"],time_format))),
                         "user_id" : TwitterUser.objects.get(user_id=content["user"]["id_str"]),
                         "text" : content["text"],
                         #place = content["user"]["place"],

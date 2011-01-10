@@ -1,6 +1,5 @@
-import urllib2,json,time
+import urllib2,json,time,datetime
 from celery.task import PeriodicTask, Task
-from datetime import datetime
 from models import FacebookUser, FacebookPost
 from celery.execute import send_task 
 from kral.tasks import *
@@ -63,9 +62,9 @@ class ProcessFBPost(Task):
             elif k == 'to':
                 to_users = item.pop('to')
             elif k == 'created_time':
-                data.update({ k : datetime.strptime(v, time_format)})
+                data.update({ k : datetime.datetime.strptime(v, time_format)})
             elif k == 'updated_time':
-                data.update({ k : datetime.strptime(v, time_format)})
+                data.update({ k : datetime.datetime.strptime(v, time_format)})
             else:
                 data.update({ k : v })
 

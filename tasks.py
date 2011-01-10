@@ -1,4 +1,4 @@
-import httplib,urlparse,re,sys,os
+import httplib,urlparse,re,sys,os,datetime
 from django.conf import settings
 from celery.task.control import inspect
 from celery.task.base import PeriodicTask,Task
@@ -20,25 +20,19 @@ else:
         except ImportError:
             raise ImportError('Module %s does not exist.' % plugin)
 
-#plugincontroller needs to be rewritten to only run anything when there aew new querys
-#when there are new querys, abort any running tasks, then re-run them with the new querys
-#class PluginController(PeriodicTask):
-class PluginController(Task):
-#    run_every = settings.KRAL_WAIT
+class PluginController(PeriodicTask):
+    run_every = settings.KRAL_WAIT
     def run(self, **kwargs):
         logger = self.get_logger(**kwargs)
         slots = getattr(settings, 'KRAL_SLOTS', 1)
         plugins = getattr(settings, 'KRAL_PLUGINS', ALLPLUGINS) 
-        querys = Query.objects.order_by('-last_modified')[:slots]
+	querys = Query.objects.order_by('-last_processed')[:slots]
         for plugin in plugins:
             send_task("kral.plugins.%s.tasks.%s" % (plugin.lower(), plugin.capitalize()), kwargs={'querys': querys })
             logger.debug("Started %s task for querys: %s" % (plugin, querys))
+        for query in querys:
+            query.save()
         return "Refreshed Tasks"
-
-def apply_at_worker_start(**kwargs):
-    PluginController.delay();   
-    
-worker_ready.connect(apply_at_worker_start) 
 
 class ExpandURL(Task):
     def run(self,url,query,n=1,original_url=None,**kwargs):

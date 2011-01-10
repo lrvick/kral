@@ -2,11 +2,17 @@ from django.db import models
 
 class Query(models.Model):
     text = models.CharField(max_length=100,unique=True)
-    hits = models.BigIntegerField(default=1)
-    last_modified = models.DateTimeField(auto_now=True,auto_now_add=True)
-
+    created_at = models.DateTimeField(auto_now=True,auto_now_add=True)
+    last_processed = models.DateTimeField(auto_now=True,auto_now_add=True)
     def __unicode__(self):
        return self.text
+
+class Visitor(models.Model):
+    querys = models.ManyToManyField(Query, related_name="visitor_set")
+    ip = models.IPAddressField(unique=True)
+    last_modified = models.DateTimeField(auto_now=True,auto_now_add=True)
+    def __unicode__(self):
+       return self.ip
 
 class WebLink(models.Model):
     querys = models.ManyToManyField(Query, related_name="weblink_set")
