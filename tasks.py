@@ -26,7 +26,7 @@ class PluginController(PeriodicTask):
         logger = self.get_logger(**kwargs)
         slots = getattr(settings, 'KRAL_SLOTS', 1)
         plugins = getattr(settings, 'KRAL_PLUGINS', ALLPLUGINS) 
-	querys = Query.objects.order_by('-last_processed')[:slots]
+	querys = Query.objects.order_by('last_processed')[:slots]
         for plugin in plugins:
             send_task("kral.plugins.%s.tasks.%s" % (plugin.lower(), plugin.capitalize()), kwargs={'querys': querys })
             logger.debug("Started %s task for querys: %s" % (plugin, querys))
