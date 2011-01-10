@@ -33,7 +33,7 @@ class PluginController(PeriodicTask):
             logger.debug("Started %s task for querys: %s" % (plugin, querys))
         cache.clear()
         for query in querys:
-            cache.set(query,'1')
+            cache.set(query.text,'1')
             query.save()
         return "Refreshed Tasks"
 
