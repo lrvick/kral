@@ -6,6 +6,7 @@ from celery.signals import worker_ready
 from celery.execute import send_task
 from kral.models import *
 from django.core.cache import cache
+import djcelery
 
 ALLPLUGINS = []
 
@@ -21,6 +22,22 @@ else:
         except ImportError:
             raise ImportError('Module %s does not exist.' % plugin)
 
+class PluginInit(Task):
+    def run(self, **kwargs):
+        logger = self.get_logger(**kwargs)
+        slots = getattr(settings, 'KRAL_SLOTS', 1)
+        plugins = getattr(settings, 'KRAL_PLUGINS', ALLPLUGINS)
+        querys = Query.objects.order_by('last_processed')[:slots]
+        for plugin in plugins:
+            send_task("kral.plugins.%s.tasks.%s" % (plugin.lower(), plugin.capitalize()), kwargs={'querys': querys })
+            logger.debug("Started %s task for querys: %s" % (plugin, querys))
+        cache.clear()
+        cache_set = [cache.set(query.text, 1) for query in querys]
+
+def apply_at_worker_start(**kwargs):
+    PluginInit.delay();
+worker_ready.connect(apply_at_worker_start) 
+
 class PluginController(PeriodicTask):
     run_every = settings.KRAL_WAIT
     def run(self, **kwargs):
@@ -28,23 +45,22 @@ class PluginController(PeriodicTask):
         slots = getattr(settings, 'KRAL_SLOTS', 1)
         plugins = getattr(settings, 'KRAL_PLUGINS', ALLPLUGINS)
         querys = Query.objects.order_by('last_processed')[:slots]
-        
-        new_querys = True
-        
+        new_querys = False
         for query in querys:
-            if cache.has_key(query.text):
-                new_querys = False
+            if (query.last_processed + datetime.timedelta(seconds = 4)) > datetime.datetime.now():
+                new_querys = True
+                logger.warning("Restarting plugins for new query: %s" % (query.text))
                 break
         if new_querys:
             for plugin in plugins:
                 send_task("kral.plugins.%s.tasks.%s" % (plugin.lower(), plugin.capitalize()), kwargs={'querys': querys })
                 logger.debug("Started %s task for querys: %s" % (plugin, querys))
             cache.clear()
-            cache_set = [cache.set(query.text, 1) for query in querys] 
-            print "REREUNNING STUFFS!"
+            cache_set = [cache.set(query.text, 1) for query in querys]
+            for query in querys:
+                query.save()
             return "Refreshed tasks"
         else:
-            print "NO MORE STUFFS TO RUN"
             return "No refresh needed"
 
 class ExpandURL(Task):

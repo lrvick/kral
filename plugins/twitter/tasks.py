@@ -13,7 +13,6 @@ class Twitter(Task):
     def run(self, querys, **kwargs):
         logger = self.get_logger(**kwargs)
         self.query_post = str("track="+",".join([q.text for q in querys]))
-        print self.query_post
         self.request = urllib2.Request('http://stream.twitter.com/1/statuses/filter.json',self.query_post)
         self.auth = base64.b64encode('%s:%s' % (settings.TWITTER_USER, settings.TWITTER_PASS))
         self.request.add_header('Authorization', "basic %s" % self.auth)
@@ -21,7 +20,7 @@ class Twitter(Task):
             self.stream = urllib2.urlopen(self.request)
         except Exception,e:
             if e.code == 420:
-                logger.error("Maximum API connections exceeded")
+                logger.info("Twitter connection closed")
             else:
                 logger.error("Invalid/null response from server: %s" % (e))
             return False
