@@ -12,9 +12,9 @@ def serialize_model(request,plugin,query,format):
     
     visitor_object,created = Visitor.objects.get_or_create(ip=ip)
      
-     query_object,created = Query.objects.get_or_create(text=query)
-   # query_object.last_modified = datetime.datetime.now()
-   # query_object.save()
+    query_object,created = Query.objects.get_or_create(text=query)
+    #query_object.last_modified = datetime.datetime.now()
+    #query_object.save()
 
     visitor_object.querys.add(query_object)
 

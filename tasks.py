@@ -5,7 +5,6 @@ from celery.task.base import PeriodicTask,Task
 from celery.signals import worker_ready
 from celery.execute import send_task
 from kral.models import *
-from django.core.cache import cache
 import djcelery
 
 ALLPLUGINS = []
@@ -31,8 +30,6 @@ class PluginInit(Task):
         for plugin in plugins:
             send_task("kral.plugins.%s.tasks.%s" % (plugin.lower(), plugin.capitalize()), kwargs={'querys': querys })
             logger.debug("Started %s task for querys: %s" % (plugin, querys))
-        cache.clear()
-        cache_set = [cache.set(query.text, 1) for query in querys]
 
 def apply_at_worker_start(**kwargs):
     PluginInit.delay();
@@ -55,8 +52,6 @@ class PluginController(PeriodicTask):
             for plugin in plugins:
                 send_task("kral.plugins.%s.tasks.%s" % (plugin.lower(), plugin.capitalize()), kwargs={'querys': querys })
                 logger.debug("Started %s task for querys: %s" % (plugin, querys))
-            cache.clear()
-            cache_set = [cache.set(query.text, 1) for query in querys]
             for query in querys:
                 query.save()
             return "Refreshed tasks"
@@ -102,7 +97,5 @@ class ProcessURL(Task):
         weblink.querys.add(qobj)
         logger.debug("Added relation for weblink to: %s" % qobj)
         logger.debug("Added/Updated URL: %s" % url)
-
-
 
 #vim: ai ts=4 sts=4 et sw=4
