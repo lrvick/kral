@@ -1,4 +1,4 @@
-import urllib2,urlparse,pycurl,json,time,re,sys,time,os,socket,base64
+import urllib2,urlparse,json,time,re,sys,time,os,socket,base64
 from celery.task.base import PeriodicTask,Task
 from celery.signals import worker_ready
 from django.conf import settings
