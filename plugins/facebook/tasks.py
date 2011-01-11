@@ -8,6 +8,7 @@ from models import FacebookUser, FacebookPost
 from kral.tasks import *
 from kral.models import Query
 from django.core.cache import cache
+from django.conf import settings
 
 class Facebook(Task):
     def run(self, querys, abort=False, **kwargs):
@@ -26,7 +27,7 @@ class FacebookFeed(Task):
         try:
             data = json.loads(urllib2.urlopen(url).read())
         except Exception, e:
-            return None
+            return e
         try:
             paging = data['paging'] #next page / previous page urls
             prev_url = paging['previous']
@@ -34,7 +35,9 @@ class FacebookFeed(Task):
         except:
             prev_url = prev_url
             time.sleep(5)
-        if cache.get(query.text):
+        slots = getattr(settings, 'KRAL_SLOTS', 1)
+        all_querys = Query.objects.order_by('last_processed')[:slots]
+        if query in all_querys:
             FacebookFeed.delay(query,prev_url)
             try:
                 items
