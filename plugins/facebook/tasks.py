@@ -86,7 +86,6 @@ class ProcessFBPost(Task):
             conn = stomp.Connection()
             conn.start()
             conn.connect()
-            conn.subscribe(destination='/messages', ack='auto')
             conn.send(json.dumps(post_info), destination='/messages')
         return "Saved Post/User"
 # vim: ai ts=4 sts=4 et sw=4

@@ -39,11 +39,11 @@ class ProcessTweet(Task):
                 "service" : 'twitter',
                 "user" : content["user"]["screen_name"],
                 "message" : content["text"],
+                "picture" : content['user']["profile_image_url"],
             }
             conn = stomp.Connection()
             conn.start()
             conn.connect()
-            conn.subscribe(destination='/messages', ack='auto')
             conn.send(json.dumps(post_info), destination='/messages')
 
 #vim: ai ts=5 sts=4 et sw=4
