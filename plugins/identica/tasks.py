@@ -16,7 +16,7 @@ class IdenticaFeed(Task):
     def run(self, query, since_id=None, **kwargs):
         global last_id
         logger = self.get_logger(**kwargs)
-        if last_id: 
+        if since_id: 
             url = "http://identi.ca/api/search.json?q=%s&since_id=%s" % (query, since_id)
         else: #first time through
             url = "http://identi.ca/api/search.json?q=%s" % query
