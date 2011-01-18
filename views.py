@@ -20,7 +20,7 @@ def push_data(data,queue):
                                   userid="guest",
                                   password="guest",
                                   virtual_host="/")
-        queue = connection.SimpleQueue('messages', serializer="json")
+        queue = connection.SimpleQueue('messages')
         queue.put(data)
         queue.close
 
