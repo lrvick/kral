@@ -10,24 +10,32 @@ class Youtube(Task):
             YoutubeFeed.delay(query)
 
 class YoutubeFeed(Task):
-    def run(self,query,**kwargs):
+    def run(self,query,prev_date='0',**kwargs):
         logger = self.get_logger(**kwargs)
-        url = "http://gdata.youtube.com/feeds/api/videos?q=%s&orderby=published&start-index=11&max-results=10&v=2&alt=json" % query
+        time_format = '%Y-%m-%dT%H:%M:%S.000Z'
+        url = "http://gdata.youtube.com/feeds/api/videos?q=%s&orderby=published&max-results=25&v=2&alt=json" % query
         try:
             data = json.loads(urllib2.urlopen(url).read())
+            first_post_date = data['feed']['entry'][0]['published']['$t']
+            first_date = time.mktime(time.strptime(first_post_date,time_format))
+            if int(first_date) < int(prev_date):
+                first_date = prev_date
         except Exception, e:
             return e
         slots = getattr(settings, 'KRAL_SLOTS', 1)
         all_querys = Query.objects.order_by('last_processed')[:slots]
         if query in all_querys:
+            if prev_date is not '0':
+                time.sleep(10)
+            YoutubeFeed.delay(query,first_date)
             try:
                 for item in data['feed']['entry']:
-                    ProcessYTVideo.delay(item,query)
+                    this_date = time.mktime(time.strptime(item['published']['$t'],time_format))
+                    if int(this_date) > int(prev_date):
+                        ProcessYTVideo.delay(item,query)
                 return "Spawned Processors"
             except:
                 return "No data"
-            time.sleep(5)
-            YoutubeFeed.delay(query)
         else:
             return "Exiting Feed"
    
@@ -37,10 +45,16 @@ class ProcessYTVideo(Task):
             logger = self.get_logger(**kwargs)
             post_info = {
                     "service" : 'youtube',
-                    #"user" : from_user["name"],
-                    "message" : item["title"]['$t'],
+                    "id" : item['media$group']['yt$videoid']['$t'],
+                    "date" : item['media$group']['yt$uploaded']['$t'],
+                    "user" : item['author'][0]["name"]['$t'],
+                    "source" : item['link'][1]['href'],
+                    "text" : item["title"]['$t'],
+                    "keywords" : item['media$group']['media$keywords'].get('$t',''),
+                    "description" : item['media$group']['media$description']['$t'],
+                    "thumbnail" : item['media$group']['media$thumbnail'][0]['url'],
+                    "duration" : item['media$group']['yt$duration']['seconds'],
             }
-            #print post_info['message']
             conn = stomp.Connection()
             conn.start()
             conn.connect()
