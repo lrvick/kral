@@ -1,4 +1,4 @@
-import urllib2,json,time,datetime,stomp
+import urllib2,json,time,datetime
 from celery.task import PeriodicTask, Task
 from celery.task import control
 from celery.contrib.abortable import AbortableTask
@@ -7,6 +7,7 @@ from celery.execute import send_task
 from models import FacebookUser, FacebookPost
 from kral.tasks import *
 from kral.models import Query
+from kral.views import push_data
 from django.core.cache import cache
 from django.conf import settings
 
@@ -83,9 +84,6 @@ class ProcessFBPost(Task):
                     "user" : from_user["name"],
                     "message" : data["message"],
             }
-            conn = stomp.Connection()
-            conn.start()
-            conn.connect()
-            conn.send(json.dumps(post_info), destination='/messages')
+            push_data(post_info,'messages')
         return "Saved Post/User"
 # vim: ai ts=4 sts=4 et sw=4

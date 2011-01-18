@@ -1,10 +1,16 @@
-import datetime
+import datetime,stomp,json
 from django.http import HttpResponse, Http404
 from django.core import serializers
 from kral.plugins.twitter.models import *
 from kral.plugins.facebook.models import *
 from kral.models import *
 from django.conf import settings
+
+def push_data(data,queue):
+    conn = stomp.Connection()
+    conn.start()
+    conn.connect()
+    conn.send(json.dumps(data), destination='/messages')
 
 def serialize_model(request,plugin,query,format):
     query = query.lower()

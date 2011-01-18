@@ -1,9 +1,10 @@
-import urllib2,json,base64,stomp
+import urllib2,json,base64
 from celery.task.base import PeriodicTask,Task
 from celery.signals import worker_ready
 from django.conf import settings
 from models import *
 from kral.models import *
+from kral.views import push_data
 from tasks import *
 from kral.tasks import *
 from celery.registry import tasks
@@ -41,9 +42,6 @@ class ProcessTweet(Task):
                 "message" : content["text"],
                 "picture" : content['user']["profile_image_url"],
             }
-            conn = stomp.Connection()
-            conn.start()
-            conn.connect()
-            conn.send(json.dumps(post_info), destination='/messages')
+            push_data(post_info,'messages')
 
 #vim: ai ts=5 sts=4 et sw=4

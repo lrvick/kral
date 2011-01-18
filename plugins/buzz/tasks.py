@@ -1,7 +1,8 @@
-import urllib2,json,time,datetime,stomp
+import urllib2,json,time,datetime
 from celery.task import Task
 from kral.tasks import *
 from kral.models import Query
+from kral.views import push_data
 from django.conf import settings
 
 class Buzz(Task):
@@ -74,10 +75,7 @@ class ProcessBuzzPost(Task):
                 "source" : item['object']['links']['alternate'][0]['href'],
                 "text" : item["object"]['content'],
         }
-        conn = stomp.Connection()
-        conn.start()
-        conn.connect()
-        conn.send(json.dumps(post_info), destination='/messages')
+        push_data(post_info,'messages')
         return "Saved Post/User"
 
 # vim: ai ts=4 sts=4 et sw=4
