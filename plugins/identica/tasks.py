@@ -17,9 +17,9 @@ class IdenticaFeed(Task):
         global last_id
         logger = self.get_logger(**kwargs)
         if since_id: 
-            url = "http://identi.ca/api/search.json?q=%s&since_id=%s" % (query, since_id)
+            url = "http://identi.ca/api/search.json?q=%s&since_id=%s&rpp=100" % (query, since_id)
         else: #first time through
-            url = "http://identi.ca/api/search.json?q=%s" % query
+            url = "http://identi.ca/api/search.json?q=%s&rpp=100" % query
         try:
             data = json.loads(urllib2.urlopen(url).read())
             completed_in = data['completed_in']
@@ -29,7 +29,7 @@ class IdenticaFeed(Task):
             results_per_page = data['results_per_page']
             max_id = data['max_id']
             page = data['page'] 
-            if not data['results']: 
+            if not data['results']:
                 time.sleep(10)
                 IdenticaFeed.delay(query, since_id=last_id)
             last_id = data['results'][0]['since_id'] #latest since_id will be used as last_id
@@ -50,17 +50,22 @@ class ProcessIdenticaPost(Task):
         logger = self.get_logger(**kwargs)
         time_format = "%a, %d %b %Y %H:%M:%S +0000"
         
-        #NOTE: still some useful data to map, to_user, language code, etc.
         post_info = {
             "service": "identi.ca", 
             "user": {
                 "name": item['from_user'],
                 "id": item['from_user_id'],
             },
+            "to_user": {
+                "name": item['to_user'],
+                "id": item['to_user_id'],
+            }, 
             "text": item['text'],
             "date": datetime.datetime.strptime(item['created_date'], time_format),
             "pictures": {
-                "0": item['profile_image_url'],
+                "0": {
+                    "thumbnail": item['profile_image_url'],
+                },
             },
             "source": item['source'],
         }
