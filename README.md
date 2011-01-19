@@ -158,6 +158,60 @@ Or if you wanted to return an RSS feed of all the latest mentions of Facebook me
 All API requests will instantly retreive any matching data from the database, and also request Kral collect new data on this given topic, in respect to the KRAL_TIME and KRAL_SLOTS settings. 
 
 
+### Kral Data Format ###
+
+Kral posts are created and pushed out by plugins as single JSON encoded items as follows:
+
+    {
+        "service" : "",           # Service Name.
+        "user" : {                # User Info 
+            "name" : "",          #   User Name
+            "id" : "",            #   Unique User ID
+            "geo" : "",           #   Latitude/Logitude User location
+            "avatar" : "",        #   Direct href to avatar image
+            "location": "",       #   Plain Language User location
+            "subscribers": "",    #   Number of subscribers
+            "subscriptions": "",  #   Number of subscriptions
+            "profile": "",        #   Href to users profile
+        }
+        "to_user" : {             # User this post is directed towards.
+            "name" : "",          #   User Name 
+            "id" : "",            #   Unique User ID
+            "geo" : "",           #   Latitude/Logitude User location
+            "avatar" : "",        #   Direct href to avatar image
+            "location": "",       #   Plain Language User location
+            "subscribers": "",    #   Number of subscribers
+            "subscriptions": "",  #   Number of subscriptions
+            "profile": "",        #   Href to users profile
+        }
+        "pictures" {              # Attached Pictures
+           "0": {                 # Index of picture 
+             "thumbnail" : "",    #   Direct href to image thumbnail
+             "image" : "",        #   Direct href to picture
+           },
+        },
+        "id" : "",                # Unique ID
+        "geo",                    # Latitude/Logitude content creation location
+        "location",               # Plain Language content creation location
+        "date" : "",              # Date posted
+        "source" : "",            # User friendly link to content
+        "text" : "",              # Microblog text / Video Title / Etc
+        "description" : "",       # Full post text / Decription 
+        "keywords" : "",          # Related Keywords
+        "category" : "",          # Category of content
+        "duration" : "",          # Duration of video
+        "likes" : "",             # Number of users who "liked" this
+        "dislikes" : "",          # Number of users who "disliked" this
+        "favorites": "",          # Number of users who "favorited" this
+        "comments": "",           # Number of users who "commented" this
+        "rates": "",              # Number of users who "rated" this
+        "rating": "",             # Average "rating" of content
+        "min_rating": "",         # Minimum "rating" of content
+        "max_rating": "",         # Maximum "rating" of content
+    }
+
+
+
 ## Notes ##
 
 Many more features coming soon as this project is under active development.
