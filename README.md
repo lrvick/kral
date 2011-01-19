@@ -64,6 +64,28 @@ Example:
 NOTE: Doing this might violate TOS on some services. Use at your own risk.
 
 
+## Starting Kral ##
+
+In order to start collecting data with Kral, you just need to run celery, and celery will do the rest. 
+
+The usual ways of starting celery are as follows.
+
+### Start celery with heartbeat ###
+
+Example:
+
+    ./manage.py celeryd -B --purge
+
+### Start celery with heartbeat verbose output ###
+
+Example:
+
+    ./manage.py celeryd -B --purge --verbosity=2 --loglevel=INFO
+
+To run celery in production we recommend running it as a daemon.
+
+You can read more about this at: http://celeryproject.org/docs/cookbook/daemonizing.html
+
 
 ## Operating Kral from CLI ##
 
@@ -95,29 +117,6 @@ You could also initiate a permanant query which will bypass KRALR_SLOTS and neve
 Example: 
 
     ./manage.py kral-query --permanent "cheese"
-
-
-### Starting Celeryd ###
-
-In order to start collecting data with Kral, you just need to run celery, and celery will do the rest. 
-
-The usual ways of starting celery are as follows.
-
-#### Start celery with heartbeat ####
-
-Example:
-
-    ./manage.py celeryd -B --purge
-
-#### Start celery with heartbeat verbose output ####
-
-Example:
-
-    ./manage.py celeryd -B --purge --verbosity=2 --loglevel=INFO
-
-To run celery in production we recommend running it as a daemon.
-
-You can read more about this at: http://celeryproject.org/docs/cookbook/daemonizing.html
 
 
 ### Monitoring Kral ###
