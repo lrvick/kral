@@ -35,13 +35,31 @@ class ProcessTweet(Task):
         user_id = content["user"].get('id_str', None)
         urls = content['entities']['urls']
         time_format = "%a %b %d %H:%M:%S +0000 %Y"
+        
         if user_id:
-            post_info = {
-                "service" : 'twitter',
-                "user" : content["user"]["screen_name"],
-                "message" : content["text"],
-                "picture" : content['user']["profile_image_url"],
-            }
-            push_data(post_info,'messages')
+            post_dict = {} 
+            text = content['text'].lower() 
+            qlist = [q.text.lower() for q in querys] 
+            post_dict = dict([(q, None) for q in qlist]) 
+
+            for q in qlist:
+                if q in text: 
+                    post_dict[q] = { 
+                        "service" : 'twitter',
+                        "user" : {
+                          "name": content["user"]["screen_name"],
+                        },
+                        "message" : content["text"],
+                        "picture" : {
+                            "0": {
+                                "thumbnail": content['user']["profile_image_url"],
+                            },
+                        },
+                        "date": content['created_at'],
+                     }
+            
+            for query, post_info in post_dict.items(): 
+                if post_info:
+                    push_data(post_info, queue=query)
 
 #vim: ai ts=5 sts=4 et sw=4

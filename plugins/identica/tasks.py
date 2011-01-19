@@ -32,11 +32,11 @@ class IdenticaFeed(Task):
             if not data['results']:
                 time.sleep(10)
                 IdenticaFeed.delay(query, since_id=last_id)
-            last_id = data['results'][0]['since_id'] #latest since_id will be used as last_id
+            last_id = data['results'][0]['id'] #latest since_id will be used as last_id
         except Exception, e:
             raise e
 
-        slots = gettattr(settings, 'KRAL_SLOTS', 1)
+        slots = getattr(settings, 'KRAL_SLOTS', 1)
         all_querys = Query.objects.order_by('last_processed')[:slots]
         if query in all_querys:
             for item in data['results']:
@@ -49,6 +49,7 @@ class ProcessIdenticaPost(Task):
     def run(self, item, query, **kwargs):
         logger = self.get_logger(**kwargs)
         time_format = "%a, %d %b %Y %H:%M:%S +0000"
+        date = str(datetime.datetime.strptime(item['created_at'], time_format))
         
         post_info = {
             "service": "identi.ca", 
@@ -61,13 +62,15 @@ class ProcessIdenticaPost(Task):
                 "id": item['to_user_id'],
             }, 
             "text": item['text'],
-            "date": datetime.datetime.strptime(item['created_date'], time_format),
+            "date": date,
             "pictures": {
                 "0": {
                     "thumbnail": item['profile_image_url'],
                 },
             },
             "source": item['source'],
+            "id": item['id'], 
         }
-        push_data(post_info, 'messages')
+        print(post_info['id'])
+        push_data(post_info, queue = query)
         logger.info("Saved Identica Post")

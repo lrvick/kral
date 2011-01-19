@@ -22,7 +22,7 @@ class YoutubeFeed(Task):
             if int(first_date) < int(prev_date):
                 first_date = prev_date
         except Exception, e:
-            return e
+            raise e
         slots = getattr(settings, 'KRAL_SLOTS', 1)
         all_querys = Query.objects.order_by('last_processed')[:slots]
         if query in all_querys:
@@ -56,7 +56,7 @@ class ProcessYTVideo(Task):
                     "thumbnail" : item['media$group']['media$thumbnail'][0]['url'],
                     "duration" : item['media$group']['yt$duration']['seconds'],
             }
-            push_data(post_info,'messages')
-        return "Saved Post/User"
+            push_data(post_info, queue = query)
+        logger.info("Saved Post/User")
 
 # vim: ai ts=4 sts=4 et sw=4

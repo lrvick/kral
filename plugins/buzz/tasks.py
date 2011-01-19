@@ -26,7 +26,7 @@ class BuzzFeed(Task):
             if int(first_date) < int(prev_date):
                 first_date = prev_date
         except Exception, e:
-            return e
+            raise e
         slots = getattr(settings, 'KRAL_SLOTS', 1)
         all_querys = Query.objects.order_by('last_processed')[:slots]
         if query in all_querys:
@@ -38,7 +38,7 @@ class BuzzFeed(Task):
                     this_date = int(time.mktime(time.strptime(item['updated'],time_format)))
                     if int(this_date) > int(prev_date):
                         ProcessBuzzPost.delay(item,query)
-                return "Spawned Processors"
+                logger.info("Spawned Processors")
             except:
                 return "No data"
         else:
@@ -75,7 +75,7 @@ class ProcessBuzzPost(Task):
                 "source" : item['object']['links']['alternate'][0]['href'],
                 "text" : item["object"]['content'],
         }
-        push_data(post_info,'messages')
-        return "Saved Post/User"
+        push_data(post_info, queue = query)
+        logger.info("Saved Post/User")
 
 # vim: ai ts=4 sts=4 et sw=4
