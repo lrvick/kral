@@ -35,31 +35,30 @@ class ProcessTweet(Task):
         user_id = content["user"].get('id_str', None)
         urls = content['entities']['urls']
         time_format = "%a %b %d %H:%M:%S +0000 %Y"
-        
         if user_id:
-            post_dict = {} 
             text = content['text'].lower() 
-            qlist = [q.text.lower() for q in querys] 
-            post_dict = dict([(q, None) for q in qlist]) 
-
-            for q in qlist:
-                if q in text: 
-                    post_dict[q] = { 
-                        "service" : 'twitter',
-                        "user" : {
-                          "name": content["user"]["screen_name"],
-                        },
-                        "message" : content["text"],
-                        "picture" : {
-                            "0": {
-                                "thumbnail": content['user']["profile_image_url"],
-                            },
-                        },
-                        "date": content['created_at'],
-                     }
-            
-            for query, post_info in post_dict.items(): 
-                if post_info:
-                    push_data(post_info, queue=query)
+            qlist = [q.text.lower() for q in querys]
+            post_info = { 
+                'service' : 'twitter',
+                'user' : {
+                    'id' : content['user']['id_str'],
+                    'utc' : content['user']['utc_offset'],
+                    'name' : content['user']['screen_name'],
+                    'description' : content['user']['description'],
+                    'location' : content['user']['location'],
+                    'avatar' : content['user']['profile_image_url'],
+                    'subscribers': content['user']['followers_count'],
+                    'subscriptions': content['user']['friends_count'],
+                    'website': content['user']['url'],
+                    'language' : content['user']['lang'],
+                },
+                'id' : content['id'],
+                'application': content['source'],
+                'date' : content['created_at'],
+                'text' : content['text'],
+                'geo' : content['coordinates'],
+            }
+            for query in qlist: 
+                push_data(post_info, queue=query)
 
 #vim: ai ts=5 sts=4 et sw=4
