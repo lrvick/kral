@@ -4,25 +4,16 @@ from django.core import serializers
 from kral.plugins.twitter.models import *
 from kral.plugins.facebook.models import *
 from kral.models import *
-from kombu import BrokerConnection
+from kombu import BrokerConnection, Exchange, Producer
 from django.conf import settings
 
-
 def push_data(data,queue):
-    push_method = getattr(settings,'KRAL_PUSH_METHOD','STOMP')
-    if push_method == 'STOMP':
-        conn = stomp.Connection()
-        conn.start()
-        conn.connect()
-        conn.send(json.dumps(data), destination='/messages')
-    if push_method == 'AMQP':
-        connection = BrokerConnection(hostname="localhost",
-                                  userid="guest",
-                                  password="guest",
-                                  virtual_host="/")
-        queue = connection.SimpleQueue('messages')
-        queue.put(data)
-        queue.close
+    connection = BrokerConnection()
+    channel = connection.channel()
+    producer = Producer(channel, Exchange("messages", type="fanout"))
+    producer.publish(data)
+    channel.close()
+    connection.close()
 
 def serialize_model(request,plugin,query,format):
     query = query.lower()
