@@ -1,14 +1,8 @@
-import urllib2,json,base64
-from celery.task.base import PeriodicTask,Task
-from celery.signals import worker_ready
+import urllib2,json,base64,datetime
 from django.conf import settings
-from models import *
+from celery.task.base import Task
 from kral.models import *
 from kral.views import push_data
-from tasks import *
-from kral.tasks import *
-from celery.registry import tasks
-from celery.execute import send_task
 
 class Twitter(Task):
     def run(self, querys, **kwargs):
@@ -32,12 +26,8 @@ class ProcessTweet(Task):
     def run(self, data, querys, **kwargs):
         logger = self.get_logger(**kwargs)
         content = json.loads(data)
-        user_id = content["user"].get('id_str', None)
-        urls = content['entities']['urls']
         time_format = "%a %b %d %H:%M:%S +0000 %Y"
-        if user_id:
-            text = content['text'].lower() 
-            qlist = [q.text.lower() for q in querys]
+        if content["user"].get('id_str', None):
             post_info = { 
                 'service' : 'twitter',
                 'user' : {
@@ -54,11 +44,12 @@ class ProcessTweet(Task):
                 },
                 'id' : content['id'],
                 'application': content['source'],
-                'date' : content['created_at'],
+                'date' : str(datetime.datetime.strptime(content['created_at'],time_format)),
                 'text' : content['text'],
                 'geo' : content['coordinates'],
             }
-            for query in qlist: 
-                push_data(post_info, queue=query)
+            for query in [q.text.lower() for q in querys]:
+                if query in content['text'].lower():
+                    push_data(post_info, queue=query)
 
 #vim: ai ts=5 sts=4 et sw=4
