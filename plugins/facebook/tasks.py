@@ -59,8 +59,7 @@ class ProcessFBPost(Task):
                     "date": str(datetime.datetime.strptime(item['created_time'], time_format)),
             }
             if item.get('to'):
-                post_info["to_user"]['name'] = item['to']['name']
-                post_info["to_user"]['id'] = item['to']['id']
+                post_info["to_user"] = item['to']
             if item.get('likes'):
                 post_info["likes"] = item['likes']['count']
             if item.get('application'):
