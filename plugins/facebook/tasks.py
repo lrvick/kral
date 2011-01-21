@@ -58,6 +58,7 @@ class ProcessFBPost(Task):
                     "text" : item["message"],
                     "date": str(datetime.datetime.strptime(item['created_time'], time_format)),
             }
+            post_info['user']['avatar'] = "http://graph.facebook.com/%s/picture" % item['from']['id']
             if item.get('to'):
                 post_info["to_users"] = item['to']['data']
             if item.get('likes'):
