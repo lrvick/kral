@@ -172,16 +172,22 @@ Kral posts are sent out by plugins as single JSON encoded items as follows:
             "profile": "",        # Href to user profile
             "website": "",        # Href to user website
         }
-        "to_user" : {             # User this post is directed towards.
-            "name" : "",          # User Name
-            "id" : "",            # Unique User ID
-        }
+        "to_users" {               # Attached link(s)
+           "0": {                  # Index of link
+              "name" : "",         # User Name
+              "id" : "",           # Unique User ID
+              "service"            # Name of service/Domain hosting link 
+              "title" : "",        # Title of item
+              "thumbnail" : "",    # Direct href to thumbnail for item
+              "href" : "",         # Direct href to item
+           },
+        },       
         "links" {                 # Attached link(s)
            "0": {                 # Index of link
-             "service"            # Name of service/Domain hosting link 
-             "title" : "",        # Title of item
-             "thumbnail" : "",    # Direct href to thumbnail for item
-             "href" : "",         # Direct href to item
+              "service"            # Name of service/Domain hosting link 
+              "title" : "",        # Title of item
+              "thumbnail" : "",    # Direct href to thumbnail for item
+              "href" : "",         # Direct href to item
            },
         },       
         "id" : "",                # Unique ID
