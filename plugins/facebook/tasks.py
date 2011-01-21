@@ -24,12 +24,12 @@ class FacebookFeed(Task):
             url = prev_url
         try:
             data = json.loads(urllib2.urlopen(url).read())
+            items = data['data']
         except Exception, e:
             raise e
         try:
             paging = data['paging'] #next page / previous page urls
             prev_url = paging['previous']
-            items = data['data']
         except: #no previous url
             prev_url = prev_url
             time.sleep(5)
@@ -47,43 +47,25 @@ class ProcessFBPost(Task):
     def run(self, item, query, **kwargs):
         logger = self.get_logger(**kwargs)
         time_format = "%Y-%m-%dT%H:%M:%S+0000"
-        data, from_user, to_users = {}, {}, {}
-        if item.has_key('properties'): item.pop('properties') 
-        if item.has_key('application'):
-            application = item['application']
-            if application:
-                data['application_name'] = application['name']
-                data['application_id'] = application['id']
-            item.pop('application') 
-
-        if item.has_key('likes'):
-                data['likes'] = item['likes']['count']
-                item.pop('likes')
-        for k,v in item.items():
-            if k == 'id':
-                data.update({'post_id': v })
-            elif k == 'from':
-                from_user = item.pop('from') 
-            elif k == 'to':
-                to_users = item.pop('to')
-            elif k == 'created_time':
-                data.update({ k : datetime.datetime.strptime(v, time_format)})
-            elif k == 'updated_time':
-                data.update({ k : datetime.datetime.strptime(v, time_format)})
-            else:
-                data.update({ k : v })
-
-        #TODO: finish mapping
-        post_info = {
-                "service" : 'facebook',
-                "user" : {
-                    "name": from_user['name'],
-                    "id": from_user['id'],
-                },
-                "message" : data["message"],
-                "date": data['created_time'],
-        }
-        push_data(post_info, queue=query)
-        logger.info("Saved Post/User")
+        if item.has_key('message'):
+            post_info = {
+                    "service" : 'facebook',
+                    "user" : {
+                        "name": item['from']['name'],
+                        "id": item['from']['id'],
+                    },
+                    "id" : item["id"],
+                    "text" : item["message"],
+                    "date": str(datetime.datetime.strptime(item['created_time'], time_format)),
+            }
+            if item.get('to'):
+                post_info["to_user"]['name'] = item['to']['name']
+                post_info["to_user"]['id'] = item['to']['id']
+            if item.get('likes'):
+                post_info["likes"] = item['likes']['count']
+            if item.get('application'):
+                post_info["application"] = item['application']['name']
+            push_data(post_info, queue=query)
+            logger.info("Saved Post/User")
 
 # vim: ai ts=4 sts=4 et sw=4
