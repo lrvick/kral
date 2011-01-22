@@ -1,8 +1,6 @@
 import datetime,stomp,json
 from django.http import HttpResponse, Http404
 from django.core import serializers
-from kral.plugins.twitter.models import *
-from kral.plugins.facebook.models import *
 from kral.models import *
 from kombu import BrokerConnection, Exchange, Producer
 from django.conf import settings

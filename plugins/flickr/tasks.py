@@ -86,9 +86,9 @@ class ProcessFLPhoto(Task):
             "thumbnail" : photo_info['thumbnail'],
         }
         if user_info.get('name'):
-            post_info['user']['name'] = user_info.get['username'].get('_content', "")
+            post_info['user']['name'] = user_info['username'].get('_content', "")
         if user_info.get('realname'):
-            post_info['user']['real_name'] = user_info.get['realname'].get('_content', "")
+            post_info['user']['real_name'] = user_info['realname'].get('_content', "")
         if user_info.get('location'):
             post_info['user']['location'] = user_info['location'].get('_content', "")
         print(post_info)
