@@ -11,8 +11,8 @@ from django.core.cache import cache
 from django.conf import settings
 
 class Facebook(Task):
-    def run(self, querys, abort=False, **kwargs):
-        for query in querys:
+    def run(self, queries, abort=False, **kwargs):
+        for query in queries:
             FacebookFeed.delay(query)
 
 class FacebookFeed(Task):
@@ -34,8 +34,8 @@ class FacebookFeed(Task):
             prev_url = prev_url
             time.sleep(5)
         slots = getattr(settings, 'KRAL_SLOTS', 1)
-        all_querys = Query.objects.order_by('last_processed')[:slots]
-        if query in all_querys:
+        all_queries = Query.objects.order_by('last_processed')[:slots]
+        if query in all_queries:
             FacebookFeed.delay(query, prev_url)
             for item in items:
                 ProcessFBPost.delay(item, query)

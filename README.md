@@ -42,7 +42,7 @@ Example:
 ### KRAL_TIME ###
 
 Minimum amount of time data must be collected for each query.
-If all slots are full then this defines how fast slots rotate between querys
+If all slots are full then this defines how fast slots rotate between queries
 
 Example:
 
@@ -123,7 +123,7 @@ Example:
 #### Permanent Query ####
 
 You could also initiate a permanant query which will bypass KRALR_SLOTS and 
-never get bumped out of the way in favor of standard querys. Kralr will always 
+never get bumped out of the way in favor of standard queries. Kralr will always 
 devote resourced to collecting data on permanent queries any time it is running.
 
 #### Initiate a permanent query ####

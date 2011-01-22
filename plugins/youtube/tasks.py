@@ -6,8 +6,8 @@ from kral.models import Query
 from django.conf import settings
 
 class Youtube(Task):
-    def run(self, querys, abort=False, **kwargs):
-        for query in querys:
+    def run(self, queries, abort=False, **kwargs):
+        for query in queries:
             YoutubeFeed.delay(query)
 
 class YoutubeFeed(Task):
@@ -24,8 +24,8 @@ class YoutubeFeed(Task):
         except Exception, e:
             raise e
         slots = getattr(settings, 'KRAL_SLOTS', 1)
-        all_querys = Query.objects.order_by('last_processed')[:slots]
-        if query in all_querys:
+        all_queries = Query.objects.order_by('last_processed')[:slots]
+        if query in all_queries:
             if prev_date is not '0':
                 time.sleep(10)
             YoutubeFeed.delay(query,first_date)

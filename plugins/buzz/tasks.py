@@ -6,8 +6,8 @@ from kral.views import push_data
 from django.conf import settings
 
 class Buzz(Task):
-    def run(self, querys, abort=False, **kwargs):
-        for query in querys:
+    def run(self, queries, abort=False, **kwargs):
+        for query in queries:
             BuzzFeed.delay(query)
 
 class BuzzFeed(Task):
@@ -28,8 +28,8 @@ class BuzzFeed(Task):
         except Exception, e:
             raise e
         slots = getattr(settings, 'KRAL_SLOTS', 1)
-        all_querys = Query.objects.order_by('last_processed')[:slots]
-        if query in all_querys:
+        all_queries = Query.objects.order_by('last_processed')[:slots]
+        if query in all_queries:
             if prev_date is not '0':
                 time.sleep(10)
             BuzzFeed.delay(query,first_date)

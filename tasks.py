@@ -26,10 +26,10 @@ class PluginInit(Task):
         logger = self.get_logger(**kwargs)
         slots = getattr(settings, 'KRAL_SLOTS', 1)
         plugins = getattr(settings, 'KRAL_PLUGINS', ALLPLUGINS)
-        querys = Query.objects.order_by('last_processed')[:slots]
+        queries = Query.objects.order_by('last_processed')[:slots]
         for plugin in plugins:
-            send_task("kral.plugins.%s.tasks.%s" % (plugin.lower(), plugin.capitalize()), kwargs={'querys': querys })
-            logger.debug("Started %s task for querys: %s" % (plugin, querys))
+            send_task("kral.plugins.%s.tasks.%s" % (plugin.lower(), plugin.capitalize()), kwargs={'queries': queries })
+            logger.debug("Started %s task for queries: %s" % (plugin, queries))
 
 def apply_at_worker_start(**kwargs):
     PluginInit.delay();
@@ -41,18 +41,18 @@ class PluginController(PeriodicTask):
         logger = self.get_logger(**kwargs)
         slots = getattr(settings, 'KRAL_SLOTS', 1)
         plugins = getattr(settings, 'KRAL_PLUGINS', ALLPLUGINS)
-        querys = Query.objects.order_by('last_processed')[:slots]
-        new_querys = False
-        for query in querys:
+        queries = Query.objects.order_by('last_processed')[:slots]
+        new_queries = False
+        for query in queries:
             if (query.last_processed + datetime.timedelta(seconds = 4)) > datetime.datetime.now():
-                new_querys = True
+                new_queries = True
                 logger.warning("Restarting plugins for new query: %s" % (query.text))
                 break
-        if new_querys:
+        if new_queries:
             for plugin in plugins:
-                send_task("kral.plugins.%s.tasks.%s" % (plugin.lower(), plugin.capitalize()), kwargs={'querys': querys })
-                logger.debug("Started %s task for querys: %s" % (plugin, querys))
-            for query in querys:
+                send_task("kral.plugins.%s.tasks.%s" % (plugin.lower(), plugin.capitalize()), kwargs={'queries': queries })
+                logger.debug("Started %s task for queries: %s" % (plugin, queries))
+            for query in queries:
                 query.save()
             return "Refreshed tasks"
         else:
@@ -94,7 +94,7 @@ class ProcessURL(Task):
             logger.debug("Recorded mention of known URL: \"%s\"" % (url))
         
         qobj = Query.objects.get(text__iexact=unicode(query))
-        weblink.querys.add(qobj)
+        weblink.queries.add(qobj)
         logger.debug("Added relation for weblink to: %s" % qobj)
         logger.debug("Added/Updated URL: %s" % url)
 

@@ -8,14 +8,14 @@ class Query(models.Model):
        return self.text
 
 class Visitor(models.Model):
-    querys = models.ManyToManyField(Query, related_name="visitor_set")
+    queries = models.ManyToManyField(Query, related_name="visitor_set")
     ip = models.IPAddressField(unique=True)
     last_modified = models.DateTimeField(auto_now=True,auto_now_add=True)
     def __unicode__(self):
        return self.ip
 
 class WebLink(models.Model):
-    querys = models.ManyToManyField(Query, related_name="weblink_set")
+    queries = models.ManyToManyField(Query, related_name="weblink_set")
     url = models.CharField(unique=True,max_length=4000)
     title = models.CharField(max_length=255,blank=True)
     description = models.TextField(blank=True)

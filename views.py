@@ -25,7 +25,7 @@ def serialize_model(request,plugin,query,format):
     #query_object.last_modified = datetime.datetime.now()
     #query_object.save()
 
-    visitor_object.querys.add(query_object)
+    visitor_object.queries.add(query_object)
 
     try:
         qs = getattr(query_object, "%s_set" % plugin.lower())

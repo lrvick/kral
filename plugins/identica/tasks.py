@@ -8,8 +8,8 @@ from django.conf import settings
 last_id = None
 
 class Identica(Task):
-    def run(self, querys, **kwargs):
-        for query in querys:
+    def run(self, queries, **kwargs):
+        for query in queries:
             IdenticaFeed.delay(query)
 
 class IdenticaFeed(Task):
@@ -37,8 +37,8 @@ class IdenticaFeed(Task):
             raise e
 
         slots = getattr(settings, 'KRAL_SLOTS', 1)
-        all_querys = Query.objects.order_by('last_processed')[:slots]
-        if query in all_querys:
+        all_queries = Query.objects.order_by('last_processed')[:slots]
+        if query in all_queries:
             for item in data['results']:
                 ProcessIdenticaPost.delay(item, query)
                 logger.info("Sending IdenticaFeed item to be processed.")
