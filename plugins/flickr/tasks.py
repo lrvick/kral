@@ -34,7 +34,7 @@ class FlickrFeed(Task):
         all_queries = Query.objects.order_by('last_processed')[:slots]
         if query in all_queries:
             if top_id_seen:
-                print("Sleeping for: %s | Query: %s" % (top_id_seen, query))
+                logger.info("Sleeping for: %s | Query: %s" % (top_id_seen, query))
                 time.sleep(10)
             #FlickrFeed.delay(query, top_id_seen)
             # What follows is an...inelegant solution for Flickr.
@@ -59,7 +59,7 @@ class FlickrFeed(Task):
             else:
                 raise Exception("Flickr API Error Code %s: %s" % (data['code'], data['message']))
             top_id_seen = photo_ids[-1]
-            print("Top id seen: %s | Query: %s" % (top_id_seen, query))
+            logger.info("Top id seen: %s | Query: %s" % (top_id_seen, query))
             FlickrFeed.delay(query, top_id_seen)
         else:
             logger.info("Exiting Feed")
@@ -71,7 +71,7 @@ class ProcessFLPhoto(Task):
         user_info = self.GetFLUsername(photo_info['owner'])
         user_info['path_alias'] = user_info.get('path_alias', "") #if path_alias in user_info else user_info['id']
         photo_info['url'] = "http://flickr.com/%s/%s" % (user_info['path_alias'], photo_info['id'])
-        photo_info['thumbnail'] = "http://farm{farm}.static.flickr.com/{server}/{id}_{secret}_s.jpg".format(**photo_info)
+        photo_info['thumbnail'] = "http://farm{farm}.static.flickr.com/{server}/{id}_{secret}_m.jpg".format(**photo_info)
         post_info = {
             "service" : 'flickr',
             "id" : photo_info['id'],
