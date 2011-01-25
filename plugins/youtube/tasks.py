@@ -44,6 +44,7 @@ class ProcessYTVideo(Task):
     def run(self, item, query, **kwargs):
         if item.has_key('title'):
             logger = self.get_logger(**kwargs)
+            print(item['media$group']['media$thumbnail'])
             post_info = {
                     "service" : 'youtube',
                     "id" : item['media$group']['yt$videoid']['$t'],
@@ -53,7 +54,7 @@ class ProcessYTVideo(Task):
                     "text" : item["title"]['$t'],
                     "keywords" : item['media$group']['media$keywords'].get('$t',''),
                     "description" : item['media$group']['media$description']['$t'],
-                    "thumbnail" : item['media$group']['media$thumbnail'][0]['url'],
+                    "thumbnail" : "http://i.ytimg.com/vi/%s/hqdefault.jpg" % item['media$group']['yt$videoid']['$t'],
                     "duration" : item['media$group']['yt$duration']['seconds'],
             }
             push_data(post_info, queue = query)
