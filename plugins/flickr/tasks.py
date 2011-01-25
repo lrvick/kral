@@ -23,7 +23,6 @@ class Flickr(Task):
 
 
 class FlickrFeed(Task):
-
     def run(self, query, top_id_seen=0, **kwargs):
         logger = self.get_logger(**kwargs)
         url = "http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=%s&tags=%s&format=json&nojsoncallback=1" % (settings.FLICKR_API_KEY, query)
@@ -34,9 +33,10 @@ class FlickrFeed(Task):
         slots = getattr(settings, 'KRAL_SLOTS', 1)
         all_queries = Query.objects.order_by('last_processed')[:slots]
         if query in all_queries:
-            if top_id_seen is not '0':
+            if top_id_seen:
+                print("Sleeping for: %s | Query: %s" % (top_id_seen, query))
                 time.sleep(10)
-            FlickrFeed.delay(query, top_id_seen)
+            #FlickrFeed.delay(query, top_id_seen)
             # What follows is an...inelegant solution for Flickr.
             # Especially for branding and such, we would do well to
             # collect tags that are placed after the initial upload.
@@ -46,19 +46,21 @@ class FlickrFeed(Task):
             # balance this with the other plugins, though, or how that
             # could be done without Flickr adding something else to
             # their API.
+            photos = data['photos']['photo']
+            photo_ids = [int(p['id']) for p in photos]
+            photo_ids.sort()
+          
             if data['stat'] == "ok":
-                top_session_id = 0
                 for photo in data['photos']['photo']:
                     # Only process new photos
                     if int(photo['id']) > top_id_seen: 
                         ProcessFLPhoto.delay(photo, query)
                         logger.info("Spawned Flickr photo processor for query: %s" % query)
-                        if int(photo['id']) > top_session_id: 
-                            top_session_id = int(photo['id'])
-                    if top_session_id > top_id_seen: 
-                        top_id_seen = top_session_id
             else:
                 raise Exception("Flickr API Error Code %s: %s" % (data['code'], data['message']))
+            top_id_seen = photo_ids[-1]
+            print("Top id seen: %s | Query: %s" % (top_id_seen, query))
+            FlickrFeed.delay(query, top_id_seen)
         else:
             logger.info("Exiting Feed")
    
@@ -91,6 +93,7 @@ class ProcessFLPhoto(Task):
             post_info['user']['real_name'] = user_info['realname'].get('_content', "")
         if user_info.get('location'):
             post_info['user']['location'] = user_info['location'].get('_content', "")
+        
         print(post_info)
         push_data(post_info, query)
         logger.info("Saved Post/User")
