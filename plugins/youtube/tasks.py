@@ -11,40 +11,48 @@ class Youtube(Task):
             YoutubeFeed.delay(query)
 
 class YoutubeFeed(Task):
-    def run(self,query,prev_date='0',**kwargs):
+    def run(self,query,prev_list=None,**kwargs):
         logger = self.get_logger(**kwargs)
-        time_format = '%Y-%m-%dT%H:%M:%S.000Z'
         url = "http://gdata.youtube.com/feeds/api/videos?q=%s&orderby=published&max-results=25&v=2&alt=json" % query
         try:
             data = json.loads(urllib2.urlopen(url).read())
-            first_post_date = data['feed']['entry'][0]['published']['$t']
-            first_date = time.mktime(time.strptime(first_post_date,time_format))
-            if int(first_date) < int(prev_date):
-                first_date = prev_date
         except Exception, e:
             raise e
         slots = getattr(settings, 'KRAL_SLOTS', 1)
         all_queries = Query.objects.order_by('last_processed')[:slots]
+        
+        entries = data['feed']['entry']
+        id_list = [e['id']['$t'].split(':')[-1] for e in entries]
+        print("IDS: %s" % id_list)
+
         if query in all_queries:
-            if prev_date is not '0':
+            if prev_list:
                 time.sleep(10)
-            YoutubeFeed.delay(query,first_date)
             try:
-                for item in data['feed']['entry']:
-                    this_date = time.mktime(time.strptime(item['published']['$t'],time_format))
-                    if int(this_date) > int(prev_date):
-                        ProcessYTVideo.delay(item,query)
-                return "Spawned Processors"
-            except:
-                return "No data"
+                for entry in entries: 
+                    if prev_list:
+                        v_id = entry['id']['$t'].split(':')[-1]
+                        #if current video id in previous ids we skip
+                        if v_id in prev_list:
+                            pass
+                        else:
+                            #this is new, so process it
+                            print("%s is new, processing ..." % v_id)
+                            ProcessYTVideo.delay(entry, query)
+                    else:
+                        #first time through, no previous list process videos
+                        ProcessYTVideo.delay(entry, query)
+                logger.info("Spawned Processors")
+            except Exception, e:
+                raise e
+            YoutubeFeed.delay(query, id_list)
         else:
-            return "Exiting Feed"
+            logger.info("Exiting Feed")
    
 class ProcessYTVideo(Task):
     def run(self, item, query, **kwargs):
+        logger = self.get_logger(**kwargs)
         if item.has_key('title'):
-            logger = self.get_logger(**kwargs)
-            print(item['media$group']['media$thumbnail'])
             post_info = {
                     "service" : 'youtube',
                     "id" : item['media$group']['yt$videoid']['$t'],
