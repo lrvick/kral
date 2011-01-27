@@ -1,9 +1,12 @@
-import urllib2,json,time,datetime
+import urllib2
+import json
+import time
+import datetime
+import re
 from celery.task import PeriodicTask, Task
 from celery.task import control
 from celery.contrib.abortable import AbortableTask
 from celery.execute import send_task 
-from models import FacebookUser, FacebookPost
 from kral.tasks import *
 from kral.models import Query
 from kral.views import push_data
@@ -54,17 +57,21 @@ class ProcessFBPost(Task):
                         "name": item['from']['name'],
                         "id": item['from']['id'],
                     },
-                    "id" : item["id"],
-                    "text" : item["message"],
+                    'links' : [],
+                    "id" : item['id'],
+                    "text" : item['message'],
                     "date": str(datetime.datetime.strptime(item['created_time'], time_format)),
             }
+            url_regex = re.compile('(?:http|https|ftp):\/\/[\w\-_]+(?:\.[\w\-_]+)+(?:[\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?')
+            for url in url_regex.findall(item['message']):
+                post_info['links'].append({ 'href' : url })
             post_info['user']['avatar'] = "http://graph.facebook.com/%s/picture" % item['from']['id']
             if item.get('to'):
-                post_info["to_users"] = item['to']['data']
+                post_info['to_users'] = item['to']['data']
             if item.get('likes'):
-                post_info["likes"] = item['likes']['count']
+                post_info['likes'] = item['likes']['count']
             if item.get('application'):
-                post_info["application"] = item['application']['name']
+                post_info['application'] = item['application']['name']
             push_data(post_info, queue=query)
             logger.info("Saved Post/User")
 
