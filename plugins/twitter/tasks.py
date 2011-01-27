@@ -42,12 +42,22 @@ class ProcessTweet(Task):
                     'website': content['user']['url'],
                     'language' : content['user']['lang'],
                 },
+                'links' : {},
                 'id' : content['id'],
                 'application': content['source'],
                 'date' : str(datetime.datetime.strptime(content['created_at'],time_format)),
                 'text' : content['text'],
                 'geo' : content['coordinates'],
             }
+            # If there are URLs in the Tweet, we want to map them to links for kral.
+            #if type(content['entities'].get('urls')) == list:
+            for url in content['entities']['urls']:
+                post_info['links']['url'] = url.get('url')
+                post_info['links']['FULLURL'] = url.get('expanded_url')
+                if url['expanded_url'] != None:
+                    print("OMGWTFBBQ EXPANDED_URL == %s ORIGINAL: %s" % (url['expanded_url'], url['url']))
+            #else:
+            #    print(type(content['entities']['urls']), content['text'])
             for query in [q.text.lower() for q in queries]:
                 if query in content['text'].lower():
                     push_data(post_info, queue=query)
