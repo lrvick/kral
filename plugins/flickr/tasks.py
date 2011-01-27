@@ -25,7 +25,7 @@ class Flickr(Task):
 class FlickrFeed(Task):
     def run(self, query, top_id_seen=0, **kwargs):
         logger = self.get_logger(**kwargs)
-        url = "http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=%s&tags=%s&format=json&nojsoncallback=1" % (settings.FLICKR_API_KEY, query)
+        url = "http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=%s&tags=%s&format=json&nojsoncallback=1&extras=owner_name,geo,description,tags,date_upload" % (settings.FLICKR_API_KEY, query)
         try:
             data = json.loads(urllib2.urlopen(url).read())
         except Exception, e:
@@ -65,50 +65,27 @@ class FlickrFeed(Task):
             logger.info("Exiting Feed")
    
 class ProcessFLPhoto(Task):
-
     def run(self, photo_info, query, **kwargs):
+        print(photo_info)
         logger = self.get_logger(**kwargs)
-        user_info = self.GetFLUsername(photo_info['owner'])
-        user_info['path_alias'] = user_info.get('path_alias', "") #if path_alias in user_info else user_info['id']
-        photo_info['url'] = "http://flickr.com/%s/%s" % (user_info['path_alias'], photo_info['id'])
+        #photo_info['url'] = "http://flickr.com/%s/%s" % (user_info['path_alias'], photo_info['id'])
         photo_info['thumbnail'] = "http://farm{farm}.static.flickr.com/{server}/{id}_{secret}_m.jpg".format(**photo_info)
         post_info = {
             "service" : 'flickr',
             "id" : photo_info['id'],
-            "date" : time.time(),
+            "date" : photo_info['dateupload'],
             "user" : {
-                "id" : user_info.get('nsid', ""),
-                "avatar" : "http://farm{iconfarm}.static.flickr.com/{iconserver}/buddyicons/{nsid}.jpg".format(**user_info),
-                "postings" : user_info['photos']['count'].get('_content', ""),
-                "profile" : user_info['profileurl'].get('_content', ""),
-                "website" : user_info['photosurl'].get('_content', ""),
+                "id" : photo_info['owner'],
+                "name" : photo_info['ownername'],
+                #"avatar" : "http://farm{iconfarm}.static.flickr.com/{iconserver}/buddyicons/{nsid}.jpg".format(**user_info),
+                #"postings" : user_info['photos']['count'].get('_content', ""),
+                #"profile" : user_info['profileurl'].get('_content', ""),
+                #"website" : user_info['photosurl'].get('_content', ""),
             },
-            "source" : photo_info['url'],
             "text" : photo_info["title"],
             "thumbnail" : photo_info['thumbnail'],
         }
-        if user_info.get('name'):
-            post_info['user']['name'] = user_info['username'].get('_content', "")
-        if user_info.get('realname'):
-            post_info['user']['real_name'] = user_info['realname'].get('_content', "")
-        if user_info.get('location'):
-            post_info['user']['location'] = user_info['location'].get('_content', "")
-        
-        print(post_info)
-        push_data(post_info, query)
         logger.info("Saved Post/User")
-
-    def GetFLUsername(self, user_id):
-        """Given an nsid, return an array of user info"""
-        url = "http://api.flickr.com/services/rest/?method=flickr.people.getinfo&api_key=%s&user_id=%s&format=json&nojsoncallback=1" % (settings.FLICKR_API_KEY, user_id)
-        try:
-            user_info = json.loads(urllib2.urlopen(url).read())
-        except Exception, e:
-            return e
-        if user_info['stat'] != "ok":
-            raise Exception("FLICKR: Failed to retrieve user info: [%s] %s" % (data['code'], data['message']))
-        else:
-            return user_info['person']
-
+        push_data(post_info,queue=query)
 
 # vim: ai ts=4 sts=4 et sw=4
