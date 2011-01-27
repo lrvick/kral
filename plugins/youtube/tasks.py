@@ -5,13 +5,15 @@ from kral.views import push_data
 from kral.models import Query
 from django.conf import settings
 
+TARGET_LENGTH = 50
+
 class Youtube(Task):
     def run(self, queries, abort=False, **kwargs):
         for query in queries:
             YoutubeFeed.delay(query)
 
 class YoutubeFeed(Task):
-    def run(self,query,prev_list=None,**kwargs):
+    def run(self,query,prev_list=[],**kwargs):
         logger = self.get_logger(**kwargs)
         url = "http://gdata.youtube.com/feeds/api/videos?q=%s&orderby=published&max-results=25&v=2&alt=json" % query
         try:
@@ -23,29 +25,26 @@ class YoutubeFeed(Task):
         
         entries = data['feed']['entry']
         id_list = [e['id']['$t'].split(':')[-1] for e in entries]
-        print("IDS: %s" % id_list)
+        print("Prev List: %s - (%s)" % (prev_list, len(prev_list)))
 
         if query in all_queries:
             if prev_list:
                 time.sleep(10)
             try:
                 for entry in entries: 
-                    if prev_list:
-                        v_id = entry['id']['$t'].split(':')[-1]
+                    v_id = entry['id']['$t'].split(':')[-1]
+                    if v_id in prev_list:
                         #if current video id in previous ids we skip
-                        if v_id in prev_list:
-                            pass
-                        else:
-                            #this is new, so process it
-                            print("%s is new, processing ..." % v_id)
-                            ProcessYTVideo.delay(entry, query)
+                        pass
                     else:
-                        #first time through, no previous list process videos
+                        #this is new, so process it
+                        print("%s is new, processing ..." % v_id)
                         ProcessYTVideo.delay(entry, query)
+                        prev_list.append(v_id)
                 logger.info("Spawned Processors")
             except Exception, e:
                 raise e
-            YoutubeFeed.delay(query, id_list)
+            YoutubeFeed.delay(query, prev_list[-TARGET_LENGTH:] or id_list)
         else:
             logger.info("Exiting Feed")
    
