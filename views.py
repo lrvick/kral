@@ -6,12 +6,13 @@ from django.core.cache import cache
 from kombu import BrokerConnection, Exchange, Producer
 
 def push_data(data,queue):
-    if not cache.has_key('messages_buffer'):
-        merged = [str(data)]
-    else:  
-        last_data = pickle.loads(cache.get('messages_buffer'))
-        merged = last_data + [str(data)]
-    cache.set('messages_buffer', pickle.dumps(merged[-50:])) 
+    cache_name = data['service'];
+    try:
+        last_data = pickle.loads(cache.get(cache_name))
+        merged = last_data + [data]
+    except:  
+        merged = [data]
+    cache.set(cache_name, pickle.dumps(merged[-50:])) 
     connection = BrokerConnection()
     channel = connection.channel()
     producer = Producer(channel, Exchange("messages", type="fanout"))
@@ -19,6 +20,6 @@ def push_data(data,queue):
     channel.close()
     connection.close()
 
-def fetch_cache(request):
-    cache_data = pickle.loads(cache.get('messages_buffer'))
-    return HttpResponse(cache_data)
+def fetch_cache(request,cache_name):
+    cache_data = pickle.loads(cache.get(cache_name))
+    return HttpResponse(json.dumps(cache_data))
