@@ -1,4 +1,4 @@
-import datetime,stomp,json,pickle
+import datetime,json,pickle
 from django.http import HttpResponse, Http404
 from django.conf import settings
 from django.core import serializers
