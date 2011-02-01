@@ -1,50 +1,57 @@
-import urllib2
-import json
-import time
-import datetime
-import re
+import urllib2,json,time,datetime,re,pickle
+from django.conf import settings
+from django.core.cache import cache
 from celery.task import PeriodicTask, Task
 from celery.task import control
+from celery.result import AsyncResult
 from celery.contrib.abortable import AbortableTask
 from celery.execute import send_task 
 from kral.tasks import *
 from kral.models import Query
 from kral.views import push_data
-from django.core.cache import cache
-from django.conf import settings
 
-class Facebook(Task):
-    def run(self, queries, abort=False, **kwargs):
-        for query in queries:
-            FacebookFeed.delay(query)
-
-class FacebookFeed(Task):
-    def run(self,query,prev_url=None, **kwargs):
-        logger = self.get_logger(**kwargs)
-        if not prev_url:
-            url = "https://graph.facebook.com/search?q=%s&type=post&limit=25" % query
+class Facebook(PeriodicTask):
+    run_every = getattr(settings, 'KRAL_WAIT', 5)
+    def run(self, **kwargs):
+        slots = getattr(settings, 'KRAL_SLOTS', 1)
+        queries = Query.objects.order_by('last_processed')[:slots]
+        if cache.get('facebook_tasks'):
+            facebook_tasks = pickle.loads(cache.get('facebook_tasks'))
         else:
-            url = prev_url
+            facebook_tasks = {}
+        for query in queries:
+            try:
+                previous_result = AsyncResult(facebook_tasks[str(query)])
+                if previous_result.ready():
+                    result = FacebookFeed.delay(query)
+            except Exception, e:
+                result = FacebookFeed.delay(query)
+        if result:
+            facebook_tasks[str(query)] = str(result.task_id)
+            cache.set('facebook_tasks',pickle.dumps(facebook_tasks))
+        
+class FacebookFeed(Task):
+    def run(self, query, **kwargs):
+        logger = self.get_logger(**kwargs)
+        cache_name = "facebook_prevurl_%s" % query
+        if cache.get(cache_name):
+            url = cache.get(cache_name)
+        else:
+            url = "https://graph.facebook.com/search?q=%s&type=post&limit=25" % query
         try:
             data = json.loads(urllib2.urlopen(url).read())
             items = data['data']
         except Exception, e:
             raise e
         try:
-            paging = data['paging'] #next page / previous page urls
-            prev_url = paging['previous']
-        except: #no previous url
-            prev_url = prev_url
-            time.sleep(5)
-        slots = getattr(settings, 'KRAL_SLOTS', 1)
-        all_queries = Query.objects.order_by('last_processed')[:slots]
-        if query in all_queries:
-            FacebookFeed.delay(query, prev_url)
-            for item in items:
-                ProcessFBPost.delay(item, query)
-                logger.info("Spawned Processors")
-        else:
-            logger.info("Exiting Feed")
+            prev_url = data['paging']['previous']
+        except:
+            prev_url = url
+        for item in items:
+            ProcessFBPost.delay(item, query)
+        logger.info("Spawned Processors")
+        cache.set(cache_name,str(prev_url))
+        return True
    
 class ProcessFBPost(Task):
     def run(self, item, query, **kwargs):

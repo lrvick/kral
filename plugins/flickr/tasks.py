@@ -2,7 +2,6 @@ import json,time,urllib2,pickle
 from django.conf import settings
 from django.core.cache import cache
 from celery.task import Task
-from celery.task.sets import TaskSet, subtask
 from celery.result import AsyncResult
 from kral.tasks import *
 from kral.models import Query
