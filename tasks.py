@@ -1,5 +1,6 @@
 import httplib,urlparse,re,sys,os,datetime
 from django.conf import settings
+from django.core.cache import cache
 from celery.task.control import inspect
 from celery.task.base import PeriodicTask,Task
 from celery.signals import worker_ready
@@ -21,8 +22,9 @@ else:
         except ImportError:
             raise ImportError('Module %s does not exist.' % plugin)
 
-class PluginInit(Task):
+class KralInit(Task):
     def run(self, **kwargs):
+        cache.clear()
         logger = self.get_logger(**kwargs)
         slots = getattr(settings, 'KRAL_SLOTS', 1)
         plugins = getattr(settings, 'KRAL_PLUGINS', ALLPLUGINS)
@@ -32,7 +34,7 @@ class PluginInit(Task):
             logger.debug("Started %s task for queries: %s" % (plugin, queries))
 
 def apply_at_worker_start(**kwargs):
-    PluginInit.delay();
+    KralInit.delay();
 worker_ready.connect(apply_at_worker_start) 
 
 class PluginController(PeriodicTask):

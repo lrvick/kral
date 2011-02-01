@@ -1,11 +1,18 @@
-import datetime,stomp,json
+import datetime,json,pickle
 from django.http import HttpResponse, Http404
-from django.core import serializers
-from kral.models import *
-from kombu import BrokerConnection, Exchange, Producer
 from django.conf import settings
+from django.core import serializers
+from django.core.cache import cache
+from kombu import BrokerConnection, Exchange, Producer
 
 def push_data(data,queue):
+    cache_name = data['service'];
+    try:
+        last_data = pickle.loads(cache.get(cache_name))
+        merged = last_data + [data]
+    except:  
+        merged = [data]
+    cache.set(cache_name, pickle.dumps(merged[-50:])) 
     connection = BrokerConnection()
     channel = connection.channel()
     producer = Producer(channel, Exchange("messages", type="fanout"))
@@ -13,23 +20,6 @@ def push_data(data,queue):
     channel.close()
     connection.close()
 
-def serialize_model(request,plugin,query,format):
-    query = query.lower()
-    ip = request.META.get('REMOTE_ADDR', '0.0.0.0')
-    
-    visitor_object,created = Visitor.objects.get_or_create(ip=ip)
-     
-    query_object,created = Query.objects.get_or_create(text=query)
-    #query_object.last_modified = datetime.datetime.now()
-    #query_object.save()
-
-    visitor_object.queries.add(query_object)
-
-    try:
-        qs = getattr(query_object, "%s_set" % plugin.lower())
-    except AttributeError:
-        raise Http404("Does not exist.")
-
-    results = serializers.serialize(format, qs.all()[:15])
-    return HttpResponse(results)
-
+def fetch_cache(request,cache_name):
+    cache_data = pickle.loads(cache.get(cache_name))
+    return HttpResponse(json.dumps(cache_data))
