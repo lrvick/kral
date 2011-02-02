@@ -25,7 +25,7 @@ class YoutubeFeed(Task):
         
         entries = data['feed']['entry']
         id_list = [e['id']['$t'].split(':')[-1] for e in entries]
-        print("Prev List: %s - (%s)" % (prev_list, len(prev_list)))
+        #print("Prev List: %s - (%s)" % (prev_list, len(prev_list)))
 
         if query in all_queries:
             if prev_list:
@@ -38,7 +38,7 @@ class YoutubeFeed(Task):
                         pass
                     else:
                         #this is new, so process it
-                        print("%s is new, processing ..." % v_id)
+                        #print("%s is new, processing ..." % v_id)
                         ProcessYTVideo.delay(entry, query)
                         prev_list.append(v_id)
                 logger.info("Spawned Processors")

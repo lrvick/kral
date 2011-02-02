@@ -1,34 +1,25 @@
-import urllib2,json,time,datetime,re,pickle
+import urllib2,json,time,datetime,re
 from django.conf import settings
 from django.core.cache import cache
 from celery.task import PeriodicTask, Task
-from celery.task import control
 from celery.result import AsyncResult
-from celery.contrib.abortable import AbortableTask
-from celery.execute import send_task 
-from kral.tasks import *
-from kral.models import Query
-from kral.views import push_data
+from kral.views import push_data, fetch_queries
 
 class Facebook(PeriodicTask):
     run_every = getattr(settings, 'KRAL_WAIT', 5)
     def run(self, **kwargs):
-        slots = getattr(settings, 'KRAL_SLOTS', 1)
-        queries = Query.objects.order_by('last_processed')[:slots]
-        if cache.get('facebook_tasks'):
-            facebook_tasks = pickle.loads(cache.get('facebook_tasks'))
-        else:
-            facebook_tasks = {}
+        queries = fetch_queries()
         for query in queries:
-            try:
-                previous_result = AsyncResult(facebook_tasks[str(query)])
+            cache_name = "facebookfeed_%s" % query
+            if cache.get(cache_name):
+                previous_result = AsyncResult(cache.get(cache_name))
                 if previous_result.ready():
                     result = FacebookFeed.delay(query)
-            except Exception, e:
+                    cache.set(cache_name,result.task_id)
+            else:
                 result = FacebookFeed.delay(query)
-        if result:
-            facebook_tasks[str(query)] = str(result.task_id)
-            cache.set('facebook_tasks',pickle.dumps(facebook_tasks))
+                cache.set(cache_name,result.task_id)
+                return
         
 class FacebookFeed(Task):
     def run(self, query, **kwargs):
@@ -37,37 +28,36 @@ class FacebookFeed(Task):
         if cache.get(cache_name):
             url = cache.get(cache_name)
         else:
-            url = "https://graph.facebook.com/search?q=%s&type=post&limit=25" % query
+            url = "https://graph.facebook.com/search?q=\"%s\"&type=post&limit=25" % query
         try:
             data = json.loads(urllib2.urlopen(url).read())
             items = data['data']
-        except Exception, e:
-            raise e
-        try:
-            prev_url = data['paging']['previous']
-        except:
-            prev_url = url
-        for item in items:
-            ProcessFBPost.delay(item, query)
-        logger.info("Spawned Processors")
-        cache.set(cache_name,str(prev_url))
-        return True
+            if data.get('paging'):
+                prev_url = data['paging']['previous']
+            else:
+                prev_url = url
+            for item in items:
+                FacebookPost.delay(item, query)
+            cache.set(cache_name,str(prev_url))
+            return
+        except urllib2.HTTPError, error:
+            logger.error("HTTP Error: %s " % error.code)
    
-class ProcessFBPost(Task):
+class FacebookPost(Task):
     def run(self, item, query, **kwargs):
         logger = self.get_logger(**kwargs)
         time_format = "%Y-%m-%dT%H:%M:%S+0000"
         if item.has_key('message'):
             post_info = {
-                    "service" : 'facebook',
-                    "user" : {
-                        "name": item['from']['name'],
-                        "id": item['from']['id'],
-                    },
-                    'links' : [],
-                    "id" : item['id'],
-                    "text" : item['message'],
-                    "date": str(datetime.datetime.strptime(item['created_time'], time_format)),
+                "service" : 'facebook',
+                "user" : {
+                    "name": item['from']['name'],
+                    "id": item['from']['id'],
+                },
+                "links" : [],
+                "id" : item['id'],
+                "text" : item['message'],
+                "date": str(datetime.datetime.strptime(item['created_time'], time_format)),
             }
             url_regex = re.compile('(?:http|https|ftp):\/\/[\w\-_]+(?:\.[\w\-_]+)+(?:[\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?')
             for url in url_regex.findall(item['message']):
@@ -80,6 +70,6 @@ class ProcessFBPost(Task):
             if item.get('application'):
                 post_info['application'] = item['application']['name']
             push_data(post_info, queue=query)
-            logger.info("Saved Post/User")
+            return
 
 # vim: ai ts=4 sts=4 et sw=4

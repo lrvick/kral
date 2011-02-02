@@ -1,1 +1,0 @@
-[{"pk": 1, "model": "kral.query", "fields": {"text": "iphone", "created_at": "2011-01-10 10:09:33", "last_processed": "2011-01-10 10:09:33"}}, {"pk": 2, "model": "kral.query", "fields": {"text": "android", "created_at": "2011-01-10 10:09:36", "last_processed": "2011-01-10 10:09:36"}}]
