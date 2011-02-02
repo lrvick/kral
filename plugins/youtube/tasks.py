@@ -1,35 +1,45 @@
-import urllib2,json,time,datetime
-from celery.task import Task
-from kral.tasks import *
-from kral.views import push_data
-from kral.models import Query
+import urllib2,json,time,datetime,pickle
 from django.conf import settings
+from django.core.cache import cache
+from celery.task import PeriodicTask, Task
+from celery.result import AsyncResult
+from kral.views import push_data, fetch_queries
 
 TARGET_LENGTH = 50
 
-class Youtube(Task):
-    def run(self, queries, abort=False, **kwargs):
+class Youtube(PeriodicTask):
+    run_every = getattr(settings, 'KRAL_WAIT', 5)
+    def run(self, **kwargs):
+        queries = fetch_queries()
         for query in queries:
-            YoutubeFeed.delay(query)
+            cache_name = "youtubefeed_%s" % query
+            if cache.get(cache_name): 
+                previous_result = AsyncResult(cache.get(cache_name))
+                if previous_result.ready():
+                    result = YoutubeFeed.delay(query)
+                    cache.set(cache_name,result.task_id)
+            else:
+                result = YoutubeFeed.delay(query)
+                cache.set(cache_name,result.task_id)
 
 class YoutubeFeed(Task):
     def run(self,query,prev_list=[],**kwargs):
         logger = self.get_logger(**kwargs)
         url = "http://gdata.youtube.com/feeds/api/videos?q=%s&orderby=published&max-results=25&v=2&alt=json" % query
+        cache_name = "flickr_topid_%s" % query
+        try:
+            prev_list = pickle.loads(cache.get(cache_name))
+        except Exception:
+            prev_list = []
         try:
             data = json.loads(urllib2.urlopen(url).read())
         except Exception, e:
             raise e
-        slots = getattr(settings, 'KRAL_SLOTS', 1)
-        all_queries = Query.objects.order_by('last_processed')[:slots]
-        
+        all_queries = fetch_queries()
         entries = data['feed']['entry']
         id_list = [e['id']['$t'].split(':')[-1] for e in entries]
         #print("Prev List: %s - (%s)" % (prev_list, len(prev_list)))
-
         if query in all_queries:
-            if prev_list:
-                time.sleep(10)
             try:
                 for entry in entries: 
                     v_id = entry['id']['$t'].split(':')[-1]
@@ -38,17 +48,16 @@ class YoutubeFeed(Task):
                         pass
                     else:
                         #this is new, so process it
-                        #print("%s is new, processing ..." % v_id)
-                        ProcessYTVideo.delay(entry, query)
+                        YouTubeVideo.delay(entry, query)
                         prev_list.append(v_id)
                 logger.info("Spawned Processors")
             except Exception, e:
                 raise e
-            YoutubeFeed.delay(query, prev_list[-TARGET_LENGTH:] or id_list)
+            cache.set(cache_name,pickle.dumps(prev_list[-TARGET_LENGTH]))
         else:
             logger.info("Exiting Feed")
    
-class ProcessYTVideo(Task):
+class YouTubeVideo(Task):
     def run(self, item, query, **kwargs):
         logger = self.get_logger(**kwargs)
         if item.has_key('title'):
