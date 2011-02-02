@@ -11,7 +11,7 @@ class Flickr(PeriodicTask):
         queries = fetch_queries()
         for query in queries:
             cache_name = "flickrfeed_%s" % query
-            if cache.get(cache_name):
+            if cache.get(cache_name): 
                 previous_result = AsyncResult(cache.get(cache_name))
                 if previous_result.ready():
                     result = FlickrFeed.delay(query)
@@ -19,34 +19,28 @@ class Flickr(PeriodicTask):
             else:
                 result = FlickrFeed.delay(query)
                 cache.set(cache_name,result.task_id)
-                return
-       
+ 
 class FlickrFeed(Task):
     def run(self, query, **kwargs):
         logger = self.get_logger(**kwargs)
         url = "http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=%s&tags=%s&format=json&nojsoncallback=1&per_page=25&extras=owner_name,geo,description,tags,date_upload" % (settings.FLICKR_API_KEY, query)
         cache_name = "flickr_topid_%s" % query
-        if cache.get(cache_name):
-            top_id_seen = cache.get(cache_name)
-        else:
-            top_id_seen = 0
+        top_id_seen = cache.get(cache_name, None) or 0          
         try:
             data = json.loads(urllib2.urlopen(url).read())
-        except Exception, e:
-            return e
+        except Exception, e: 
+            raise e
         photos = data['photos']['photo']
         photo_ids = [int(p['id']) for p in photos]
         photo_ids.sort()
-        if data['stat'] == "ok":
-            for photo in data['photos']['photo']:
-                if int(photo['id']) > top_id_seen: 
+        if data['stat'] == "ok": 
+            for photo in photos:
+                if int(photo['id']) > int(top_id_seen):
                     FlickrPhoto.delay(photo, query)
                     logger.info("Spawned Flickr photo processor for query: %s" % query)
-            if photo_ids[-1]:
-                top_id_seen = photo_ids[-1]
-                cache.set(cache_name,str(top_id_seen))
+            top_id_seen = photo_ids[-1]
+            cache.set(cache_name,str(top_id_seen))
             logger.info("Top id seen: %s | Query: %s" % (top_id_seen, query))
-            return
         else:
             raise Exception("Flickr API Error Code %s: %s" % (data['code'], data['message']))
    

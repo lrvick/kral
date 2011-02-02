@@ -1,54 +1,61 @@
-import json
-import time
-import urllib2
-from celery.task import Task
-from kral.models import Query
-from kral.tasks import *
-from kral.views import push_data
+import json,time,urllib2
 from django.conf import settings
+from django.core.cache import cache
+from celery.task import PeriodicTask, Task
+from celery.result import AsyncResult
+from kral.views import push_data, fetch_queries
 
-class Wordpress(Task):
-    def run(self, queries, abort=False, **kwargs):
+class Wordpress(PeriodicTask):
+    run_every = getattr(settings, 'KRAL_WAIT', 5)
+    def run(self, **kwargs):
+        queries = fetch_queries()
         for query in queries:
-            WordpressFeed.delay(query)
+            cache_name = "wordpressfeed_%s" % query
+            if cache.get(cache_name): 
+                previous_result = AsyncResult(cache.get(cache_name))
+                if previous_result.ready():
+                    result = WordpressFeed.delay(query)
+                    cache.set(cache_name,result.task_id)
+            else:
+                result = WordpressFeed.delay(query)
+                cache.set(cache_name,result.task_id)
 
 class WordpressFeed(Task):
-    def run(self, query, last_seen=None, **kwargs):
+    def run(self, query, **kwargs):
         logger = self.get_logger(**kwargs)
         url = "http://en.search.wordpress.com/?q=%s&s=date&f=json" % query
+        cache_name = "wordpressfeed_lastid_%s" % query
+        last_seen = cache.get(cache_name,None)
         try:
-            data = json.loads(urllib2.urlopen(url).read())
-        except Exception, e:
-            raise e
-
-        slots = getattr(settings, 'KRAL_SLOTS', 1)
-        all_queries = Query.objects.order_by('last_processed')[:slots]
-        
-        posts = data
-
-        if query in all_queries:
+            posts = json.loads(urllib2.urlopen(url).read())
+        except urllib2.HTTPError, error:
+            logger.error("HTTP Error: %s - %s" % (error.code,url))
+            posts = None
+        if posts:
             for post in posts:
                 if last_seen:
-                    #process only posts that are newer than 'last_seen'
                     if int(post['epoch_time']) > int(last_seen):
-                        ProcessWordpressPost(post, query)
+                        WordpressEntry.delay(post, query)
                         logger.info("Processing new post.")
+                        cache.set(cache_name,post['epoch_time'])
                 else:
-                    #if not last seen, first time, process.
-                    ProcessWordpressPost(post, query)
-        
-            WordpressFeed.delay(query, last_seen=posts[0]['epoch_time'])
-        else:
-            logger.info("Query wasn't found in all queries, exiting task.")
-            
+                    WordpressEntry.delay(post, query)
+                    cache.set(cache_name,post['epoch_time'])
 
-class ProcessWordpressPost(Task):
+class WordpressEntry(Task):
     def run(self, post, query, **kwargs):
         logger = self.get_logger(**kwargs)
         post_info = {
-
+                "service" : 'wordpress',
+                "date": post['epoch_time'],
+                "user": {
+                    "name":post['author'],
+                },
+                "text":post['content'],
+                "source":post['guid'],
 
         }
+        print(post_info)
         push_data(post_info, queue=query)
         logger.info("Pushed Wordpress Post data.")
 

@@ -23,10 +23,10 @@ class Youtube(PeriodicTask):
                 cache.set(cache_name,result.task_id)
 
 class YoutubeFeed(Task):
-    def run(self,query,prev_list=[],**kwargs):
+    def run(self, query, **kwargs):
         logger = self.get_logger(**kwargs)
         url = "http://gdata.youtube.com/feeds/api/videos?q=%s&orderby=published&max-results=25&v=2&alt=json" % query
-        cache_name = "flickr_topid_%s" % query
+        cache_name = "youtubefeed_prevlist_%s" % query
         try:
             prev_list = pickle.loads(cache.get(cache_name))
         except Exception:
@@ -35,27 +35,23 @@ class YoutubeFeed(Task):
             data = json.loads(urllib2.urlopen(url).read())
         except Exception, e:
             raise e
-        all_queries = fetch_queries()
         entries = data['feed']['entry']
         id_list = [e['id']['$t'].split(':')[-1] for e in entries]
         #print("Prev List: %s - (%s)" % (prev_list, len(prev_list)))
-        if query in all_queries:
-            try:
-                for entry in entries: 
-                    v_id = entry['id']['$t'].split(':')[-1]
-                    if v_id in prev_list:
-                        #if current video id in previous ids we skip
-                        pass
-                    else:
-                        #this is new, so process it
-                        YouTubeVideo.delay(entry, query)
-                        prev_list.append(v_id)
+        try:
+            for entry in entries: 
+                v_id = entry['id']['$t'].split(':')[-1]
+                if v_id in prev_list:
+                    #if current video id in previous ids we skip
+                    pass
+                else:
+                    #this is new, so process it
+                    YouTubeVideo.delay(entry, query)
+                    prev_list.append(v_id)
+                    cache.set(cache_name,pickle.dumps(prev_list))
                 logger.info("Spawned Processors")
-            except Exception, e:
-                raise e
-            cache.set(cache_name,pickle.dumps(prev_list[-TARGET_LENGTH]))
-        else:
-            logger.info("Exiting Feed")
+        except Exception, e:
+            raise e
    
 class YouTubeVideo(Task):
     def run(self, item, query, **kwargs):
