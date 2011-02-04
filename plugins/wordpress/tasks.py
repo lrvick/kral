@@ -78,7 +78,7 @@ class WordpressEntry(Task):
                 "service" : 'wordpress',
                 "date": str(datetime.datetime.fromtimestamp(rfc822.mktime_tz(rfc822.parsedate_tz(post.childNodes[5].firstChild.data)))),
                 "user": {
-                    "name":str(author),
+                    "name":author,
                     "avatar":avatar,
                 },
                 "text": post.childNodes[1].firstChild.data,
