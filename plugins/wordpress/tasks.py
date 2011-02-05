@@ -11,7 +11,7 @@ class Wordpress(PeriodicTask):
     def run(self, **kwargs):
         queries = fetch_queries()
         for query in queries:
-            cache_name = "wordpressfeed_%s" % query
+            cache_name = "wordpressfeed_%s" % query.replace('_','')
             if cache.get(cache_name): 
                 previous_result = AsyncResult(cache.get(cache_name))
                 if previous_result.ready():
@@ -25,15 +25,18 @@ class WordpressFeed(Task):
     def run(self, query, **kwargs):
         logger = self.get_logger(**kwargs)
         fetch_method = getattr(settings, 'WORDPRESS_FETCHMETHOD', 'rss')
-        cache_name = "wordpressfeed_lastid_%s" % query
+        cache_name = "wordpressfeed_lastid_%s" % query.replace('_','')
         last_seen = cache.get(cache_name,None)
         try:
             if fetch_method == 'json':
-                url = "http://en.search.wordpress.com/?q=%s&s=date&f=json" % query
+                url = "http://en.search.wordpress.com/?q=%s&s=date&f=json" % query.replace(' ','')
                 posts = json.loads(urllib2.urlopen(url).read())
             elif fetch_method == 'rss':
-                url = "http://en.wordpress.com/tag/%s/feed/" % query
-                posts = minidom.parse(urllib2.urlopen(url)).getElementsByTagName("item")
+                url = "http://en.wordpress.com/tag/%s/feed/" % query.replace(' ','')
+                try:
+                    posts = minidom.parse(urllib2.urlopen(url)).getElementsByTagName("item")
+                except:
+                    posts = None
         except urllib2.HTTPError, error:
             logger.error("Wordpress API returned HTTP Error: %s - %s" % (error.code,url))
             posts = None

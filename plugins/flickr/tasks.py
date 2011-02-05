@@ -23,7 +23,7 @@ class Flickr(PeriodicTask):
 class FlickrFeed(Task):
     def run(self, query, **kwargs):
         logger = self.get_logger(**kwargs)
-        url = "http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=%s&tags=%s&format=json&nojsoncallback=1&per_page=50&extras=owner_name,geo,description,tags,date_upload" % (settings.FLICKR_API_KEY, query)
+        url = "http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=%s&tags=%s&format=json&nojsoncallback=1&per_page=50&extras=owner_name,geo,description,tags,date_upload" % (settings.FLICKR_API_KEY, query.replace('_','+'))
         cache_name = "flickr_topid_%s" % query
         top_id_seen = cache.get(cache_name, None) or 0          
         try:

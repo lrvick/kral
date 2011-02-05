@@ -8,17 +8,21 @@ from django.middleware.csrf import get_token
 from kombu import BrokerConnection, Exchange, Producer
 
 def index(request,query='default'):
+    query = query.replace(' ','_')
     try:
         query = request.REQUEST['query']
         add_query_result = add_query(query)
     except:
         query = query
     queries = fetch_queries()
+    all_queries = {}
+    for query in queries[:5]:
+        all_queries[query] = query.replace('_',' ')
     return render_to_response('index.html', {
         "orbited_server": settings.ORBITED_SERVER,
         "orbited_port": settings.ORBITED_PORT,
         "orbited_stomp_port": settings.ORBITED_STOMP_PORT,
-        "all_queries": queries[:5],
+        "all_queries": all_queries,
         "query": query,
         "csrf_token": get_token(request),
     })
@@ -31,7 +35,10 @@ def fetch_cache(request,service,query):
 def fetch_queries(**kwargs):
     slots = getattr(settings, 'KRAL_SLOTS', 1)
     try:
-        queries = pickle.loads(cache.get('KRAL_QUERIES'))[:slots]
+        settings_queries = pickle.loads(cache.get('KRAL_QUERIES'))[:slots]
+        queries = []
+        for query in settings_queries:
+            queries.append(query.replace(' ','_'))
     except Exception:
         queries = getattr(settings, 'KRAL_QUERIES', ['foo','bar','null'])
         cache.set('KRAL_QUERIES',pickle.dumps(queries),31556926)
