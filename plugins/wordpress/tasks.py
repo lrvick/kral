@@ -35,7 +35,7 @@ class WordpressFeed(Task):
                 url = "http://en.wordpress.com/tag/%s/feed/" % query
                 posts = minidom.parse(urllib2.urlopen(url)).getElementsByTagName("item")
         except urllib2.HTTPError, error:
-            logger.error("HTTP Error: %s - %s" % (error.code,url))
+            logger.error("Wordpress API returned HTTP Error: %s - %s" % (error.code,url))
             posts = None
         if posts:
             for post in posts:

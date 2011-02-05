@@ -41,7 +41,7 @@ class FacebookFeed(Task):
             cache.set(cache_name,str(prev_url))
             return
         except urllib2.HTTPError, error:
-            logger.error("HTTP Error: %s " % error.code)
+            logger.error("Facebook API returned HTTP Error: %s - %s" % (error.code,url))
    
 class FacebookPost(Task):
     def run(self, item, query, **kwargs):

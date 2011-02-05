@@ -7,7 +7,7 @@ from django.core.cache import cache
 from django.middleware.csrf import get_token
 from kombu import BrokerConnection, Exchange, Producer
 
-def index(request,query=None):
+def index(request,query='default'):
     try:
         query = request.REQUEST['query']
         add_query_result = add_query(query)
@@ -48,16 +48,21 @@ def exchange_send(data,exchange):
     except Exception, error:
         print(error)
 
-
 def push_data(data,queue):
     cache_name = "%s_%s" % (str(data['service']),str(queue));
+    default_cache_name = "%s_default" % str(data['service']);
     try:
         last_data = pickle.loads(cache.get(cache_name))
         merged = last_data + [data]
-    except:  
+        default_last_data = pickle.loads(cache.get(default_cache_name))
+        default_merged = default_last_data + [data]
+    except Exception, error:
         merged = [data]
+        default_merged = [data]
     cache.set(cache_name, pickle.dumps(merged[-50:]),31556926)
+    cache.set(default_cache_name, pickle.dumps(default_merged[-50:]),31556926)
     exchange_send(data,queue)
+    exchange_send(data,'default')
 
 def add_query(query):
     query = query.lower()
@@ -70,7 +75,7 @@ def add_query(query):
         try:
             connection = BrokerConnection();
             channel = connection.channel();
-            Exchange(query, type="direct")(channel).declare()
+            Exchange(query, type="fanout")(channel).declare()
             print('Exchange declared for: %s' % query)
         except Exception,error:
             print(error)
