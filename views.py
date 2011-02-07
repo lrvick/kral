@@ -8,16 +8,17 @@ from django.middleware.csrf import get_token
 from kombu import BrokerConnection, Exchange, Producer
 
 def index(request,query='default'):
-    query = query.replace(' ','_')
     try:
         query = request.REQUEST['query']
         add_query_result = add_query(query)
     except:
         query = query
+    query = query.replace(' ','_')
     queries = fetch_queries()
     all_queries = {}
-    for query in queries[:5]:
-        all_queries[query] = query.replace('_',' ')
+    for this_query in queries[:5]:
+        all_queries[this_query] = this_query.replace('_',' ')
+    print(query)
     return render_to_response('index.html', {
         "orbited_server": settings.ORBITED_SERVER,
         "orbited_port": settings.ORBITED_PORT,
