@@ -86,7 +86,6 @@ class TwitterStream(Task):
                     queries.remove(query)
         logger = self.get_logger(**kwargs)
         self.query_post = str("track="+",".join([q for q in queries]))
-        print(self.query_post)
         self.request = urllib2.Request('http://stream.twitter.com/1/statuses/filter.json',self.query_post)
         self.auth = base64.b64encode('%s:%s' % (settings.TWITTER_USER, settings.TWITTER_PASS))
         self.request.add_header('Authorization', "basic %s" % self.auth)

@@ -10,8 +10,8 @@ class Flickr(PeriodicTask):
     def run(self, **kwargs):
         queries = fetch_queries()
         for query in queries:
-            cache_name = "flickrfeed_%s" % query
-            if cache.get(cache_name): 
+            cache_name = "flickrfeed_%s" % query.replace(' ','').replace('_','')
+            if cache.get(cache_name,None): 
                 previous_result = AsyncResult(cache.get(cache_name))
                 if previous_result.ready():
                     result = FlickrFeed.delay(query)
@@ -24,25 +24,28 @@ class FlickrFeed(Task):
     def run(self, query, **kwargs):
         logger = self.get_logger(**kwargs)
         url = "http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=%s&tags=%s&format=json&nojsoncallback=1&per_page=50&extras=owner_name,geo,description,tags,date_upload" % (settings.FLICKR_API_KEY, query.replace('_','+'))
-        cache_name = "flickr_topid_%s" % query
+        cache_name = "flickrtopid_%s" % query.replace(' ','').replace('_','')
         top_id_seen = cache.get(cache_name, None) or 0          
         try:
             data = json.loads(urllib2.urlopen(url).read())
-        except Exception, e: 
-            raise e
-        photos = data['photos']['photo']
-        photo_ids = [int(p['id']) for p in photos]
-        photo_ids.sort()
-        if data['stat'] == "ok": 
-            for photo in photos:
-                if int(photo['id']) > int(top_id_seen):
-                    FlickrPhoto.delay(photo, query)
-                    logger.info("Spawned Flickr photo processor for query: %s" % query)
-            top_id_seen = photo_ids[-1]
-            cache.set(cache_name,str(top_id_seen))
-            logger.info("Top id seen: %s | Query: %s" % (top_id_seen, query))
-        else:
-            raise Exception("Flickr API Error Code %s: %s" % (data['code'], data['message']))
+            photos = data['photos']['photo']
+        except ValueError: 
+            photos = None
+        except urllib2.HTTPError, error:
+            logger.error("Flickr API returned HTTP Error: %s - %s" % (error.code,url))
+        if photos:
+            photo_ids = [int(p['id']) for p in photos]
+            photo_ids.sort()
+            if data['stat'] == "ok": 
+                for photo in photos:
+                    if int(photo['id']) > int(top_id_seen):
+                        FlickrPhoto.delay(photo, query)
+                        logger.info("Spawned Flickr photo processor for query: %s" % query)
+                top_id_seen = photo_ids[-1]
+                cache.set(cache_name,str(top_id_seen))
+                logger.info("Top id seen: %s | Query: %s" % (top_id_seen, query))
+            else:
+                raise Exception("Flickr API Error Code %s: %s" % (data['code'], data['message']))
    
 class FlickrPhoto(Task):
     def run(self, photo_info, query, **kwargs):

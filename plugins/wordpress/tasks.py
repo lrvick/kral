@@ -46,13 +46,14 @@ class WordpressFeed(Task):
                     epoch_time = post['epoch_time']
                 elif fetch_method == 'rss':
                     epoch_time = time.mktime(rfc822.parsedate(post.childNodes[5].firstChild.data))
-                if last_seen:
-                    if int(epoch_time) > int(last_seen):
-                       WordpressEntry.delay(post, query)
-                       cache.set(cache_name,epoch_time)
-                else:
-                    WordpressEntry.delay(post, query)
-                    cache.set(cache_name,epoch_time)
+                if post.childNodes[1].firstChild is not None and post.childNodes[13].firstChild is not None:
+                    if last_seen:
+                        if int(epoch_time) > int(last_seen):
+                            WordpressEntry.delay(post, query)
+                            cache.set(cache_name,epoch_time)
+                    else:
+                        WordpressEntry.delay(post, query)
+                        cache.set(cache_name,epoch_time)
 
 class WordpressEntry(Task):
     def run(self, post, query, **kwargs):

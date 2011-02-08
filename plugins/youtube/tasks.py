@@ -12,7 +12,7 @@ class Youtube(PeriodicTask):
     def run(self, **kwargs):
         queries = fetch_queries()
         for query in queries:
-            cache_name = "youtubefeed_%s" % query
+            cache_name = "youtubefeed_%s" % query.replace(' ','').replace('_','')
             if cache.get(cache_name): 
                 previous_result = AsyncResult(cache.get(cache_name))
                 if previous_result.ready():
@@ -33,8 +33,8 @@ class YoutubeFeed(Task):
             prev_list = []
         try:
             data = json.loads(urllib2.urlopen(url).read())
-        except Exception, e:
-            raise e
+        except urllib2.HTTPError, error:
+            logger.error("Youtube API returned HTTP Error: %s - %s" % (error.code,url))
         entries = data['feed']['entry']
         id_list = [e['id']['$t'].split(':')[-1] for e in entries]
         #print("Prev List: %s - (%s)" % (prev_list, len(prev_list)))

@@ -57,7 +57,7 @@ def exchange_send(data,exchange):
         print(error)
 
 def push_data(data,queue):
-    cache_name = "%s_%s" % (str(data['service']),str(queue));
+    cache_name = "%s_%s" % (str(data['service']),str(queue.replace(' ','')));
     default_cache_name = "%s_default" % str(data['service']);
     try:
         last_data = pickle.loads(cache.get(cache_name))
