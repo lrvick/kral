@@ -86,16 +86,16 @@ class TwitterStream(Task):
                     queries.remove(query)
         logger = self.get_logger(**kwargs)
         self.query_post = str("track="+",".join([q for q in queries]))
-        self.request = urllib2.Request('http://stream.twitter.com/1/statuses/filter.json',self.query_post)
+        self.httprequest = urllib2.Request('http://stream.twitter.com/1/statuses/filter.json',self.query_post)
         self.auth = base64.b64encode('%s:%s' % (settings.TWITTER_USER, settings.TWITTER_PASS))
-        self.request.add_header('Authorization', "basic %s" % self.auth)
+        self.httprequest.add_header('Authorization', "basic %s" % self.auth)
         try:
-            self.stream = urllib2.urlopen(self.request)
+            self.stream = urllib2.urlopen(self.httprequest)
         except Exception,e:
             if e.code == 420:
-                logger.info("Twitter connection closed")
+                self.logger.info("Twitter connection closed")
             else:
-                logger.error("Invalid/null response from server: %s" % (e))
+                self.logger.error("Invalid/null response from server: %s" % (e))
         for tweet in self.stream:
             TwitterStreamTweet.delay(tweet, queries)
 

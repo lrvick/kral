@@ -35,23 +35,25 @@ class YoutubeFeed(Task):
             data = json.loads(urllib2.urlopen(url).read())
         except urllib2.HTTPError, error:
             logger.error("Youtube API returned HTTP Error: %s - %s" % (error.code,url))
-        entries = data['feed']['entry']
-        id_list = [e['id']['$t'].split(':')[-1] for e in entries]
-        #print("Prev List: %s - (%s)" % (prev_list, len(prev_list)))
-        try:
-            for entry in entries: 
-                v_id = entry['id']['$t'].split(':')[-1]
-                if v_id in prev_list:
-                    #if current video id in previous ids we skip
-                    pass
-                else:
-                    #this is new, so process it
-                    YouTubeVideo.delay(entry, query)
-                    prev_list.append(v_id)
-                    cache.set(cache_name,pickle.dumps(prev_list))
-                logger.info("Spawned Processors")
-        except Exception, e:
-            raise e
+            data = None
+        if data:
+            entries = data['feed']['entry']
+            id_list = [e['id']['$t'].split(':')[-1] for e in entries]
+            #print("Prev List: %s - (%s)" % (prev_list, len(prev_list)))
+            try:
+                for entry in entries: 
+                    v_id = entry['id']['$t'].split(':')[-1]
+                    if v_id in prev_list:
+                        #if current video id in previous ids we skip
+                        pass
+                    else:
+                        #this is new, so process it
+                        YouTubeVideo.delay(entry, query)
+                        prev_list.append(v_id)
+                        cache.set(cache_name,pickle.dumps(prev_list))
+                    logger.info("Spawned Processors")
+            except Exception, e:
+                raise e
    
 class YouTubeVideo(Task):
     def run(self, item, query, **kwargs):
