@@ -5,6 +5,7 @@ from django.core import serializers
 from django.shortcuts import render_to_response
 from django.core.cache import cache
 from django.middleware.csrf import get_token
+from celery.execute import send_task
 from kombu import BrokerConnection, Exchange, Producer
 
 def index(request,query='default'):
@@ -29,11 +30,14 @@ def index(request,query='default'):
     })
 
 def fetch_cache(request,service,query):
+    cache_data = []
     if service == "all":
-        cache_data = []
         for service in settings.KRAL_PLUGINS:
             cache_name = "%s_%s" % (service.lower(), query)
             cache_data += pickle.loads(cache.get(cache_name))
+    elif service == "links":
+        cache_name = "links_%s" % query
+        cache_data = pickle.loads(cache.get(cache_name))
     else:
         cache_name = "%s_%s" % (service,query)
         cache_data = pickle.loads(cache.get(cache_name))
@@ -77,6 +81,9 @@ def push_data(data,queue):
     cache.set(default_cache_name, pickle.dumps(default_merged[-50:]),31556926)
     exchange_send(data,queue)
     exchange_send(data,'default')
+    if data.get('links',None):
+        for link in data['links']:
+            send_task("kral.tasks.expand_url", [link['href'], queue])
 
 def add_query(query):
     query = query.lower()
