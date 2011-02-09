@@ -29,8 +29,14 @@ def index(request,query='default'):
     })
 
 def fetch_cache(request,service,query):
-    cache_name = "%s_%s" % (service,query);
-    cache_data = pickle.loads(cache.get(cache_name))
+    if service == "all":
+        cache_data = []
+        for service in settings.KRAL_PLUGINS:
+            cache_name = "%s_%s" % (service.lower(), query)
+            cache_data += pickle.loads(cache.get(cache_name))
+    else:
+        cache_name = "%s_%s" % (service,query)
+        cache_data = pickle.loads(cache.get(cache_name))
     return HttpResponse(json.dumps(cache_data))
 
 def fetch_queries(**kwargs):
