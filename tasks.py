@@ -46,15 +46,18 @@ def expand_url(url,query,n=1,original_url=None,**kwargs):
         if n > 3 or current_url == None:
             cache_name = "links_%s" % str(query.replace(' ',''));
             try:
-                links_dict = pickle.loads(cache.get(cache_name))
+                links = pickle.loads(cache.get(cache_name))
             except:
-                links_dict = {}
-            if links_dict.has_key(url):
-                count = links_dict[url]['count'] + 1
-            else:
-                count = 1
-            links_dict[url] = {'count':count,'title':''}
-            cache.set(cache_name, pickle.dumps(links_dict),31556926)
+                links = []
+            new_link = False
+            for link in links:
+                if link['href'] == url:
+                    link['count'] = link['count'] + 1
+                    new_link = True
+            if new_link == False:
+                links.append({'service':'links','href':url,'count':1,'title':''})
+            links = sorted(links, key=lambda link: link['count'])
+            cache.set(cache_name, pickle.dumps(links),31556926)
         else:
             expand_url.delay(current_url,query, n)
 

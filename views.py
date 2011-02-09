@@ -41,6 +41,7 @@ def fetch_cache(request,service,query):
     else:
         cache_name = "%s_%s" % (service,query)
         cache_data = pickle.loads(cache.get(cache_name))
+        cache_data = cache_data[:50]
     return HttpResponse(json.dumps(cache_data))
 
 def fetch_queries(**kwargs):
