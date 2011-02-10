@@ -51,12 +51,12 @@ def expand_url(url,query,n=1,original_url=None,**kwargs):
                 links = []
             new_link = False
             for link in links:
-                if link['href'] == url:
+                if unicode(link['href']) == unicode(url):
                     link['count'] = link['count'] + 1
                     new_link = True
             if new_link == False:
                 links.append({'service':'links','href':url,'count':1,'title':''})
-            links = sorted(links, key=lambda link: link['count'])
+            links = sorted(links, key=lambda link: link['count'],reverse=True)
             cache.set(cache_name, pickle.dumps(links),31556926)
         else:
             expand_url.delay(current_url,query, n)
