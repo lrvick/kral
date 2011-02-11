@@ -92,45 +92,48 @@ def twitter_stream(queries, **kwargs):
         stream = urllib2.urlopen(httprequest)
     except Exception,e:
         if e.code == 420:
-            logger.info("Twitter connection closed")
+            stream = None
+            logger.error("Twitter connection closed")
         else:
+            stream = None
             logger.error("Invalid/null response from server: %s" % (e))
-    for tweet in stream:
-        twitter_stream_tweet.delay(tweet, queries)
+    if stream:
+        for tweet in stream:
+            data = json.loads(tweet)
+            if data.get('user',None):
+                twitter_stream_tweet.delay(tweet, queries)
 
 @task
 def twitter_stream_tweet(data, queries, **kwargs):
     logger = twitter_stream_tweet.get_logger(**kwargs)
     content = json.loads(data)
     time_format = "%a %b %d %H:%M:%S +0000 %Y"
-    if content["user"].get('id_str', None):
-        post_info = { 
-            'service' : 'twitter',
-            'user' : {
-                'id' : content['user']['id_str'],
-                'utc' : content['user']['utc_offset'],
-                'name' : content['user']['screen_name'],
-                'description' : content['user']['description'],
-                'location' : content['user']['location'],
-                'avatar' : content['user']['profile_image_url'],
-                'subscribers': content['user']['followers_count'],
-                'subscriptions': content['user']['friends_count'],
-                'website': content['user']['url'],
-                'language' : content['user']['lang'],
-            },
-            'links' : [],
-            'id' : content['id'],
-            'application': content['source'],
-            'date' : str(datetime.datetime.strptime(content['created_at'],time_format)),
-            'text' : content['text'],
-            'geo' : content['coordinates'],
-        }
-        for url in content['entities']['urls']:
-            post_info['links'].append({ 'href' : url.get('url') })
-        for query in [q.lower() for q in queries]:
-            ns_query = query.replace('_','')
-            if ns_query in content['text'].lower():
-                push_data(post_info, queue=ns_query)
-        return
+    post_info = { 
+        'service' : 'twitter',
+        'user' : {
+            'id' : content['user']['id_str'],
+            'utc' : content['user']['utc_offset'],
+            'name' : content['user']['screen_name'],
+            'description' : content['user']['description'],
+            'location' : content['user']['location'],
+            'avatar' : content['user']['profile_image_url'],
+            'subscribers': content['user']['followers_count'],
+            'subscriptions': content['user']['friends_count'],
+            'website': content['user']['url'],
+            'language' : content['user']['lang'],
+        },
+        'links' : [],
+        'id' : content['id'],
+        'application': content['source'],
+        'date' : str(datetime.datetime.strptime(content['created_at'],time_format)),
+        'text' : content['text'],
+        'geo' : content['coordinates'],
+    }
+    for url in content['entities']['urls']:
+        post_info['links'].append({ 'href' : url.get('url') })
+    for query in [q.lower() for q in queries]:
+        ns_query = query.replace('_','')
+        if ns_query in content['text'].lower():
+            push_data(post_info, queue=ns_query)
 
 #vim: ai ts=5 sts=4 et sw=4
