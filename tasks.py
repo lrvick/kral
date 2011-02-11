@@ -45,7 +45,7 @@ def expand_url(url,query,n=1,original_url=None,**kwargs):
         current_url = response.getheader('Location')
         n += 1
         if n > 3 or current_url == None:
-            cache_name = "links_%s" % str(query.replace(' ',''));
+            cache_name = "alllinks_%s" % str(query.replace(' ',''));
             try:
                 links = pickle.loads(cache.get(cache_name))
             except:
