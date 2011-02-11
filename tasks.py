@@ -5,6 +5,7 @@ from celery.task.control import inspect
 from celery.decorators import task
 from celery.signals import worker_ready,beat_init
 from celery.execute import send_task
+from kral.views import push_data
 
 ALLPLUGINS = []
 if not hasattr(settings, "KRAL_PLUGINS"): 
@@ -54,10 +55,13 @@ def expand_url(url,query,n=1,original_url=None,**kwargs):
                 if unicode(link['href']) == unicode(url):
                     link['count'] = link['count'] + 1
                     new_link = True
+                    post_info = link
             if new_link == False:
-                links.append({'service':'links','href':url,'count':1,'title':''})
+                post_info = {'service':'links','href':url,'count':1,'title':''}
+                links.append(post_info)
             links = sorted(links, key=lambda link: link['count'],reverse=True)
             cache.set(cache_name, pickle.dumps(links),31556926)
+            push_data(post_info,queue=query)
         else:
             expand_url.delay(current_url,query, n)
 
