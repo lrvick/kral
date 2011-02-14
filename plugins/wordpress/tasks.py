@@ -84,8 +84,8 @@ def wordpress_entry(post, query, **kwargs):
                 "name":author,
                 "avatar":avatar,
             },
-            "text": post.childNodes[1].firstChild.data,
-            "description": re.sub(r'<[^>]*?>', '', post.childNodes[13].firstChild.data),
+            "title": post.childNodes[1].firstChild.data,
+            "text": re.sub(r'<[^>]*?>', '', post.childNodes[13].firstChild.data),
             "source": post.childNodes[3].firstChild.data,
         }
     push_data(post_info, queue=query)
