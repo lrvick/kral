@@ -39,6 +39,7 @@ def expand_url(url,query,n=1,original_url=None,**kwargs):
         connection = httplib.HTTPConnection(parsed_url.netloc)
     except httplib.InvalidURL:
         logger.error("Unable to expand Invalid URL: %s" % url)
+        return False
     try : 
         connection.request('HEAD', request, "", headers)
         response = connection.getresponse()
