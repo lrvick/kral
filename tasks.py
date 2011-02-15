@@ -35,7 +35,10 @@ def expand_url(url,query,n=1,original_url=None,**kwargs):
     headers = {"User-Agent": "Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.7.6) Gecko/20050512 Firefox"}
     parsed_url = urlparse.urlsplit(url)
     request = urlparse.urlunsplit(('', '', parsed_url.path, parsed_url.query, parsed_url.fragment))
-    connection = httplib.HTTPConnection(parsed_url.netloc)
+    try:
+        connection = httplib.HTTPConnection(parsed_url.netloc)
+    except httplib.InvalidURL:
+        logger.error("Unable to expand Invalid URL: %s" % url)
     try : 
         connection.request('HEAD', request, "", headers)
         response = connection.getresponse()
@@ -52,7 +55,7 @@ def expand_url(url,query,n=1,original_url=None,**kwargs):
                 links = []
             new_link = False
             for link in links:
-                if unicode(link['href']) == unicode(url):
+                if link['href'].decode('utf8') == url.decode('utf8'):
                     link['count'] = link['count'] + 1
                     new_link = True
                     post_info = link
