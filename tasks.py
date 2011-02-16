@@ -1,4 +1,4 @@
-import httplib,urlparse,re,sys,os,datetime,djcelery,pickle
+import httplib,urlparse,re,sys,os,datetime,djcelery,pickle,urllib2,base64
 from django.conf import settings
 from django.core.cache import cache
 from celery.task.control import inspect
@@ -28,10 +28,10 @@ def kral_init(**kwargs):
 beat_init.connect(kral_init) 
 
 @task
-def expand_url(url,query,n=1,original_url=None,**kwargs):
+def url_expand(url,query,n=1,original_url=None,**kwargs):
     if n == 1:
         original_url = url
-    logger = expand_url.get_logger(**kwargs)
+    logger = url_expand.get_logger(**kwargs)
     headers = {"User-Agent": "Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.7.6) Gecko/20050512 Firefox"}
     parsed_url = urlparse.urlsplit(url)
     request = urlparse.urlunsplit(('', '', parsed_url.path, parsed_url.query, parsed_url.fragment))
@@ -55,18 +55,46 @@ def expand_url(url,query,n=1,original_url=None,**kwargs):
             except:
                 links = []
             new_link = False
+            url_cache_name = base64.b64encode(url)[:250]
+            cached_title = cache.get(url_cache_name,None)
+            if cached_title:
+                title = base64.b64decode(cached_title).decode("utf8")
+            else:
+                title = None
             for link in links:
                 if link['href'].decode('utf8') == url.decode('utf8'):
                     link['count'] = link['count'] + 1
+                    if link['count'] > 1:
+                        if  title:
+                            link['title'] = title
+                        else:
+                            url_title.delay(url)
                     new_link = True
                     post_info = link
             if new_link == False:
-                post_info = {'service':'links','href':url,'count':1,'title':''}
+                post_info = {'service':'links','href':url,'count':1,'title':title}
                 links.append(post_info)
             links = sorted(links, key=lambda link: link['count'],reverse=True)
             cache.set(cache_name, pickle.dumps(links),31556926)
             push_data(post_info,queue=query)
         else:
-            expand_url.delay(current_url,query, n)
+            url_expand.delay(current_url,query, n)
+
+@task
+def url_title(url,**kwargs):
+    cache_name = base64.b64encode(url)[:250]
+    httprequest = urllib2.Request(url)
+    try:
+        data = urllib2.urlopen(httprequest)
+    except urllib2.HTTPError:
+        data = None
+    if data:
+        for line in data:
+            if '<title>' in line:
+                try:
+                    title = re.search('(?<=<title>).*(?=<\/title>)',line).group(0)
+                    cache.set(cache_name,base64.b64encode(title),3155692)
+                except:
+                    return
 
 #vim: ai ts=4 sts=4 et sw=4
