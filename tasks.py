@@ -1,4 +1,4 @@
-import httplib,urlparse,re,sys,os,datetime,djcelery,pickle,urllib2,base64
+import httplib,urlparse,re,sys,os,datetime,djcelery,pickle,urllib2,base64,urllib
 from django.conf import settings
 from django.core.cache import cache
 from celery.task.control import inspect
@@ -27,6 +27,16 @@ def kral_init(**kwargs):
     cache.clear()
 beat_init.connect(kral_init) 
 
+def fixurl(url):
+    domain, query = urllib.splitquery(url)
+    new_url = None
+    if query:
+        query = re.sub('utm_(source|medium|campaign)\=([^&]+)&?', '', query)
+        new_url = urlparse.urljoin(domain, "?"+query)
+    else:
+        new_url = domain 
+    return new_url
+
 @task
 def url_expand(url,query,n=1,original_url=None,**kwargs):
     if n == 1:
@@ -54,6 +64,7 @@ def url_expand(url,query,n=1,original_url=None,**kwargs):
                 links = pickle.loads(cache.get(cache_name))
             except:
                 links = []
+            url = fixurl(url)
             new_link = False
             url_cache_name = base64.b64encode(url)[:250]
             cached_title = cache.get(url_cache_name,None)
@@ -63,7 +74,7 @@ def url_expand(url,query,n=1,original_url=None,**kwargs):
                 title = None
             for link in links:
                 if link['href'].decode('utf8') == url.decode('utf8'):
-                    link['count'] = link['count'] + 1
+                    link['count'] += 1
                     if link['count'] > 1:
                         if  title:
                             link['title'] = title
