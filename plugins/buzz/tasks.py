@@ -30,12 +30,13 @@ def buzz_feed(query,**kwargs):
         data = json.loads(urllib2.urlopen(url).read())
     except Exception, e:
         raise e
-    for item in data['data']['items']:
-        if item.get('updated'):
-            this_date = int(time.mktime(time.strptime(item['updated'],time_format)))
-            if int(this_date) > int(prev_date):
-                buzz_post.delay(item,query)
-                cache.set(cache_name,this_date)
+    if data['data'].get('items',None):
+        for item in data['data']['items']:
+            if item.get('updated'):
+                this_date = int(time.mktime(time.strptime(item['updated'],time_format)))
+                if int(this_date) > int(prev_date):
+                    buzz_post.delay(item,query)
+                    cache.set(cache_name,this_date)
 
 @task
 def buzz_post(item, query, **kwargs):

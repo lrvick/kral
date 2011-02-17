@@ -5,8 +5,6 @@ from celery.decorators import periodic_task, task
 from celery.result import AsyncResult
 from kral.views import push_data, fetch_queries
 
-TARGET_LENGTH = 50
-
 @periodic_task(run_every = getattr(settings, 'KRAL_WAIT', 5))
 def youtube(**kwargs):
     queries = fetch_queries()
@@ -35,23 +33,22 @@ def youtube_feed(query, **kwargs):
         logger.error("Youtube API returned HTTP Error: %s - %s" % (error.code,url))
         data = None
     if data:
-        entries = data['feed']['entry']
-        id_list = [e['id']['$t'].split(':')[-1] for e in entries]
-        #print("Prev List: %s - (%s)" % (prev_list, len(prev_list)))
-        try:
-            for entry in entries: 
-                v_id = entry['id']['$t'].split(':')[-1]
-                if v_id in prev_list:
-                    #if current video id in previous ids we skip
-                    pass
-                else:
-                    #this is new, so process it
-                    youtube_video.delay(entry, query)
-                    prev_list.append(v_id)
-                    cache.set(cache_name,pickle.dumps(prev_list))
-                logger.info("Spawned Processors")
-        except Exception, e:
-            raise e
+        if data['feed'].get('entry'):
+            entries = data['feed']['entry']
+            id_list = [e['id']['$t'].split(':')[-1] for e in entries]
+            try:
+                for entry in entries: 
+                    v_id = entry['id']['$t'].split(':')[-1]
+                    if v_id in prev_list:
+                        pass
+                    else:
+                        youtube_video.delay(entry, query)
+                        prev_list.append(v_id)
+                        prev_list = prev_list[:50]
+                        cache.set(cache_name,pickle.dumps(prev_list))
+                    logger.info("Spawned Processors")
+            except Exception, e:
+                raise e
    
 @task
 def youtube_video(item, query, **kwargs):
