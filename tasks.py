@@ -56,7 +56,13 @@ def url_expand(url,query,n=1,original_url=None,**kwargs):
     except Exception, e:
         response = None
     if response:
-        current_url = response.getheader('Location')
+        try:
+            encoding = response.getheader('Content-Type').split('charset=')[-1]
+            location = response.getheader('Location')
+            current_url = unicode(location, encoding)
+        except:
+            #print(location,encoding) -- all sorts of crazy formats.
+            current_url = None
         n += 1
         if n > 3 or current_url == None:
             cache_name = "alllinks_%s" % str(query.replace(' ',''));
@@ -69,11 +75,11 @@ def url_expand(url,query,n=1,original_url=None,**kwargs):
             url_cache_name = base64.b64encode(url)[:250]
             cached_title = cache.get(url_cache_name,None)
             if cached_title:
-                title = base64.b64decode(cached_title).decode("utf8")
+                title = base64.b64decode(cached_title)
             else:
                 title = None
             for link in links:
-                if link['href'].decode('utf8') == url.decode('utf8'):
+                if link['href'] == url:
                     link['count'] += 1
                     if link['count'] > 1:
                         if  title:
@@ -89,7 +95,7 @@ def url_expand(url,query,n=1,original_url=None,**kwargs):
             cache.set(cache_name, pickle.dumps(links),31556926)
             push_data(post_info,queue=query)
         else:
-            url_expand.delay(current_url,query, n)
+            url_expand.delay(current_url,query,n,original_url)
 
 @task
 def url_title(url,**kwargs):

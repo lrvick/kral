@@ -21,7 +21,7 @@ def youtube(**kwargs):
 @task
 def youtube_feed(query, **kwargs):
     logger = youtube_feed.get_logger(**kwargs)
-    url = "http://gdata.youtube.com/feeds/api/videos?q=%s&orderby=published&max-results=25&v=2&alt=json" % query.replace('_','')
+    url = "http://gdata.youtube.com/feeds/api/videos?q=%s&orderby=published&max-results=25&v=2&alt=json" % query.replace('_','%20').replace(' ','%20')
     cache_name = "youtubefeed_prevlist_%s" % query
     try:
         prev_list = pickle.loads(cache.get(cache_name))

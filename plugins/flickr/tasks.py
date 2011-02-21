@@ -33,6 +33,9 @@ def flickr_feed(query, **kwargs):
     except urllib2.HTTPError, error:
         photos = None
         logger.error("Flickr API returned HTTP Error: %s - %s" % (error.code,url))
+    except urllib2.URLError, error:
+        photos = None
+        logger.error("Flickr API returned URL Error: %s - %s" % (error.code,url))
     if photos:
         photo_ids = [int(p['id']) for p in photos]
         photo_ids.sort()
