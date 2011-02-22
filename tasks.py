@@ -56,13 +56,16 @@ def url_expand(url,query,n=1,original_url=None,**kwargs):
     except Exception, e:
         response = None
     if response:
-        try:
-            encoding = response.getheader('Content-Type').split('charset=')[-1]
-            location = response.getheader('Location')
-            current_url = unicode(location, encoding)
-        except:
-            #print(location,encoding) -- all sorts of crazy formats.
-            current_url = None
+        current_url = None
+        location = response.getheader('Location')
+        if location:
+            content_header = response.getheader('Content-Type');
+            if content_header:
+                encoding = content_header.split('charset=')[-1]
+                try:
+                    current_url = unicode(location, encoding)
+                except LookupError:
+                    pass
         n += 1
         if n > 3 or current_url == None:
             cache_name = "alllinks_%s" % str(query.replace(' ',''));
@@ -89,6 +92,7 @@ def url_expand(url,query,n=1,original_url=None,**kwargs):
                     new_link = True
                     post_info = link
             if new_link == False:
+                print(url,title)
                 post_info = {'service':'links','href':url,'count':1,'title':title}
                 links.append(post_info)
             links = sorted(links, key=lambda link: link['count'],reverse=True)
@@ -104,6 +108,10 @@ def url_title(url,**kwargs):
     try:
         data = urllib2.urlopen(httprequest)
     except urllib2.HTTPError:
+        data = None
+    except urllib2.URLError:
+        data = None
+    except httplib.BadStatusLine:
         data = None
     if data:
         for line in data:
