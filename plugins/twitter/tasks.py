@@ -12,7 +12,7 @@ def twitter(**kwargs):
         for query in queries:
             if '_' in query:
                 queries.append(query.replace('_',''))
-                cache_name = "facebookstream_%s" % query
+                cache_name = "twitterfeed_%s" % query
                 if cache.get(cache_name):
                     previous_result = AsyncResult(cache.get(cache_name))
                     if previous_result.ready():
@@ -21,21 +21,21 @@ def twitter(**kwargs):
                 else:
                     result = twitter_feed.delay(query)
                     cache.set(cache_name,result.task_id)
-    if cache.get('twitterfeed'):
-        previous_queries = pickle.loads(cache.get('twitterfeed_queries'))
-        previous_result = AsyncResult(cache.get('twitterfeed'))
+    if cache.get('twitterstream') and cache.get('twitterstream_queries'):
+        previous_queries = pickle.loads(cache.get('twitterstream_queries'))
+        previous_result = AsyncResult(cache.get('twitterstream'))
         if previous_result.ready():
             result = twitter_stream.delay(queries)
-            cache.set('twitterfeed',result.task_id)
+            cache.set('twitterstream',result.task_id)
         if queries != previous_queries:
             result = twitter_stream.delay(queries)
             previous_result.revoke()
-            cache.set('twitterfeed_queries',pickle.dumps(queries))
-            cache.set('twitterfeed',result.task_id)
+            cache.set('twitterstream_queries',pickle.dumps(queries))
+            cache.set('twitterstream',result.task_id)
     else:
         result = twitter_stream.delay(queries)
-        cache.set('twitterfeed_queries',pickle.dumps(queries))
-        cache.set('twitterfeed',result.task_id)
+        cache.set('twitterstream_queries',pickle.dumps(queries))
+        cache.set('twitterstream',result.task_id)
         return
 
 @task

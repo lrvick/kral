@@ -77,8 +77,10 @@ def url_expand(url,query,n=1,original_url=None,**kwargs):
             new_link = False
             url_cache_name = base64.b64encode(url)[:250]
             cached_title = cache.get(url_cache_name,None)
+            title = None
             if cached_title:
                 title = base64.b64decode(cached_title)
+                unicode(title,'utf8')
             else:
                 title = None
             for link in links:
@@ -87,12 +89,11 @@ def url_expand(url,query,n=1,original_url=None,**kwargs):
                     if link['count'] > 1:
                         if  title:
                             link['title'] = title
-                        else:
+                        else: 
                             url_title.delay(url)
                     new_link = True
                     post_info = link
             if new_link == False:
-                print(url,title)
                 post_info = {'service':'links','href':url,'count':1,'title':title}
                 links.append(post_info)
             links = sorted(links, key=lambda link: link['count'],reverse=True)
@@ -104,22 +105,34 @@ def url_expand(url,query,n=1,original_url=None,**kwargs):
 @task
 def url_title(url,**kwargs):
     cache_name = base64.b64encode(url)[:250]
-    httprequest = urllib2.Request(url)
+    request = urllib2.Request(url)
     try:
-        data = urllib2.urlopen(httprequest)
+        response = urllib2.urlopen(request)
+        data = response.read()
     except urllib2.HTTPError:
         data = None
     except urllib2.URLError:
         data = None
     except httplib.BadStatusLine:
         data = None
+    except httplib.InvalidURL:
+        data = None
     if data:
-        for line in data:
-            if '<title>' in line:
+        if '<title>' in data:
+            headers = response.info()
+            raw_encoding = headers['content-type'].split('charset=')[-1]
+            if 'text/html' in raw_encoding:
+                encoding = 'unicode-escape'
+            else:
+                encoding = raw_encoding
+            title_search = re.search('(?<=<title>).*(?=<\/title>)',data)
+            if title_search:
                 try:
-                    title = re.search('(?<=<title>).*(?=<\/title>)',line).group(0)
-                    cache.set(cache_name,base64.b64encode(title),3155692)
-                except:
-                    return
+                    title = unicode(title_search.group(0),encoding)
+                    #print(encoding,url,title[:20])
+                    cache.set(cache_name,base64.b64encode(title.encode('utf8')),3155692)
+                except Exception, e:
+                    print(e)
+                    title = None
 
 #vim: ai ts=4 sts=4 et sw=4

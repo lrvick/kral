@@ -25,12 +25,15 @@ def fetch_cache(request,service,query):
 def fetch_queries(**kwargs):
     slots = getattr(settings, 'KRAL_SLOTS', 1)
     try:
-        settings_queries = pickle.loads(cache.get('KRAL_QUERIES'))[:slots]
+        cached_queries = pickle.loads(cache.get('KRAL_QUERIES'))[:slots]
+        queries = []
+        for query in cached_queries:
+            queries.append(query.replace(' ','_'))
+    except Exception:
+        settings_queries = getattr(settings, 'KRAL_QUERIES', ['foo','bar','null'])
         queries = []
         for query in settings_queries:
             queries.append(query.replace(' ','_'))
-    except Exception:
-        queries = getattr(settings, 'KRAL_QUERIES', ['foo','bar','null'])
         cache.set('KRAL_QUERIES',pickle.dumps(queries),31556926)
     return queries
 

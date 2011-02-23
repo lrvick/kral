@@ -28,8 +28,8 @@ def buzz_feed(query,**kwargs):
     prev_date = cache.get(cache_name,'0')
     try:
         data = json.loads(urllib2.urlopen(url).read())
-    except Exception, e:
-        raise e
+    except urllib2.HTTPError, error:
+        logger.error("Buzz API returned HTTP Error: %s - %s" % (error.code,url))
     if data['data'].get('items',None):
         for item in data['data']['items']:
             if item.get('updated'):
