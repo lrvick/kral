@@ -1,9 +1,10 @@
-import urllib2,json,time,datetime,re
+import urllib2,json,time,datetime,re,redis
 from django.conf import settings
-from django.core.cache import cache
 from celery.decorators import periodic_task,task
 from celery.result import AsyncResult
 from kral.views import push_data, fetch_queries
+
+cache = redis.Redis()
 
 @periodic_task(run_every = getattr(settings, 'KRAL_WAIT', 5))
 def run(**kwargs):

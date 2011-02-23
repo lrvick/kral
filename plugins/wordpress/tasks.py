@@ -1,10 +1,11 @@
-import json,time,urllib,urllib2,datetime,rfc822,re
+import json,time,urllib,urllib2,datetime,rfc822,re,redis
 from xml.dom import minidom
 from django.conf import settings
-from django.core.cache import cache
 from celery.decorators import periodic_task, task
 from celery.result import AsyncResult
 from kral.views import push_data, fetch_queries
+
+cache = redis.Redis()
 
 @periodic_task(run_every = getattr(settings, 'KRAL_WAIT', 5))
 def wordpress(**kwargs):
@@ -19,13 +20,14 @@ def wordpress(**kwargs):
         else:
             result = wordpress_feed.delay(query)
             cache.set(cache_name,result.task_id)
+        cached_id = cache.get(cache_name)
 
 @task
 def wordpress_feed(query, **kwargs):
     logger = wordpress_feed.get_logger(**kwargs)
     fetch_method = getattr(settings, 'WORDPRESS_FETCHMETHOD', 'rss')
     cache_name = "wordpressfeed_lastid_%s" % query.replace('_','')
-    last_seen = cache.get(cache_name,None)
+    last_seen = cache.get(cache_name)
     try:
         if fetch_method == 'json':
             url = "http://en.search.wordpress.com/?q=%s&s=date&f=json" % query.replace(' ','')
@@ -47,7 +49,7 @@ def wordpress_feed(query, **kwargs):
                 epoch_time = time.mktime(rfc822.parsedate(post.childNodes[5].firstChild.data))
             if post.childNodes[1].firstChild is not None and post.childNodes[13].firstChild is not None:
                 if last_seen:
-                    if int(epoch_time) > int(last_seen):
+                    if int(float(epoch_time)) > int(float(last_seen)):
                         wordpress_entry.delay(post, query)
                         cache.set(cache_name,epoch_time)
                 else:

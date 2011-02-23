@@ -1,9 +1,10 @@
-import urllib2,json,time,datetime
+import urllib2,json,time,datetime,redis
 from django.conf import settings
-from django.core.cache import cache
 from celery.decorators import periodic_task, task
 from celery.result import AsyncResult
 from kral.views import push_data, fetch_queries
+
+cache = redis.Redis()
 
 @periodic_task(run_every = getattr(settings, 'KRAL_WAIT', 5))
 def buzz(**kwargs):
@@ -25,18 +26,22 @@ def buzz_feed(query,**kwargs):
     time_format = '%Y-%m-%dT%H:%M:%S.%fZ'
     url = "http://www.googleapis.com/buzz/v1/activities/search?alt=json&orderby=published&q=%s" % query.replace('_','')
     cache_name = "buzzfeed_prevdate_%s" % query
-    prev_date = cache.get(cache_name,'0')
+    prev_date = cache.get(cache_name)
+    if prev_date == None:
+        prev_date = 0
     try:
         data = json.loads(urllib2.urlopen(url).read())
     except urllib2.HTTPError, error:
+        data = None
         logger.error("Buzz API returned HTTP Error: %s - %s" % (error.code,url))
-    if data['data'].get('items',None):
-        for item in data['data']['items']:
-            if item.get('updated'):
-                this_date = int(time.mktime(time.strptime(item['updated'],time_format)))
-                if int(this_date) > int(prev_date):
-                    buzz_post.delay(item,query)
-                    cache.set(cache_name,this_date)
+    if data:
+        if data['data'].get('items',None):
+            for item in data['data']['items']:
+                if item.get('updated'):
+                    this_date = int(time.mktime(time.strptime(item['updated'],time_format)))
+                    if int(this_date) > int(prev_date):
+                        buzz_post.delay(item,query)
+                        cache.set(cache_name,this_date)
 
 @task
 def buzz_post(item, query, **kwargs):

@@ -1,12 +1,10 @@
-import datetime,json,pickle
+import datetime,json,pickle,redis
 from django.http import HttpResponse, Http404
 from django.conf import settings
-from django.core import serializers
-from django.shortcuts import render_to_response
-from django.core.cache import cache
-from django.middleware.csrf import get_token
 from celery.execute import send_task
 from kombu import BrokerConnection, Exchange, Producer
+
+cache = redis.Redis()
 
 def fetch_cache(request,service,query):
     cache_data = []
@@ -34,7 +32,7 @@ def fetch_queries(**kwargs):
         queries = []
         for query in settings_queries:
             queries.append(query.replace(' ','_'))
-        cache.set('KRAL_QUERIES',pickle.dumps(queries),31556926)
+        cache.set('KRAL_QUERIES',pickle.dumps(queries))
     return queries
 
 def exchange_send(data,exchange):
@@ -59,8 +57,8 @@ def push_data(data,queue):
     except Exception, error:
         merged = [data]
         default_merged = [data]
-    cache.set(cache_name, pickle.dumps(merged[-50:]),31556926)
-    cache.set(default_cache_name, pickle.dumps(default_merged[-50:]),31556926)
+    cache.set(cache_name, pickle.dumps(merged[-50:]))
+    cache.set(default_cache_name, pickle.dumps(default_merged[-50:]))
     exchange_send(data,queue)
     exchange_send(data,'default')
     if data.get('links',None):
@@ -84,4 +82,4 @@ def add_query(query):
             print(error)
     queries.insert(0,query)
     queries = queries[:slots]
-    cache.set('KRAL_QUERIES',pickle.dumps(queries),31556926)
+    cache.set('KRAL_QUERIES',pickle.dumps(queries))

@@ -1,11 +1,12 @@
-import httplib,urlparse,re,sys,os,datetime,djcelery,pickle,urllib2,base64,urllib
+import httplib,urlparse,re,sys,os,datetime,djcelery,pickle,urllib2,base64,urllib,redis
 from django.conf import settings
-from django.core.cache import cache
 from celery.task.control import inspect
 from celery.decorators import task
 from celery.signals import worker_ready,beat_init
 from celery.execute import send_task
 from kral.views import push_data
+
+cache = redis.Redis()
 
 ALLPLUGINS = []
 if not hasattr(settings, "KRAL_PLUGINS"): 
@@ -24,7 +25,7 @@ def kral_init(**kwargs):
     from djcelery.models import PeriodicTask,PeriodicTasks
     PeriodicTask.objects.all().delete()
     PeriodicTasks.objects.all().delete()
-    cache.clear()
+    cache.flushall()
 beat_init.connect(kral_init) 
 
 def fixurl(url):
@@ -76,7 +77,7 @@ def url_expand(url,query,n=1,original_url=None,**kwargs):
             url = fixurl(url)
             new_link = False
             url_cache_name = base64.b64encode(url)[:250]
-            cached_title = cache.get(url_cache_name,None)
+            cached_title = cache.get(url_cache_name)
             title = None
             if cached_title:
                 title = base64.b64decode(cached_title)
@@ -97,7 +98,7 @@ def url_expand(url,query,n=1,original_url=None,**kwargs):
                 post_info = {'service':'links','href':url,'count':1,'title':title}
                 links.append(post_info)
             links = sorted(links, key=lambda link: link['count'],reverse=True)
-            cache.set(cache_name, pickle.dumps(links),31556926)
+            cache.set(cache_name, pickle.dumps(links))
             push_data(post_info,queue=query)
         else:
             url_expand.delay(current_url,query,n,original_url)
@@ -120,19 +121,23 @@ def url_title(url,**kwargs):
     if data:
         if '<title>' in data:
             headers = response.info()
-            raw_encoding = headers['content-type'].split('charset=')[-1]
-            if 'text/html' in raw_encoding:
-                encoding = 'unicode-escape'
+            content_type = headers.get('content-type',None)
+            if content_type:
+                raw_encoding = content_type.split('charset=')[-1]
+                if 'text/html' in raw_encoding:
+                    encoding = 'unicode-escape'
+                else:
+                    encoding = raw_encoding
+                title_search = re.search('(?<=<title>).*(?=<\/title>)',data)
+                if title_search:
+                    try:
+                        title = unicode(title_search.group(0),encoding)
+                        #print(encoding,url,title[:20])
+                        cache.set(cache_name,base64.b64encode(title.encode('utf8')))
+                    except Exception, e:
+                        print(e)
+                        title = None
             else:
-                encoding = raw_encoding
-            title_search = re.search('(?<=<title>).*(?=<\/title>)',data)
-            if title_search:
-                try:
-                    title = unicode(title_search.group(0),encoding)
-                    #print(encoding,url,title[:20])
-                    cache.set(cache_name,base64.b64encode(title.encode('utf8')),3155692)
-                except Exception, e:
-                    print(e)
-                    title = None
+                error.log("Unknown content type for URL: %s" % url)
 
 #vim: ai ts=4 sts=4 et sw=4

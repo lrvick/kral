@@ -1,16 +1,18 @@
-import json,time,urllib2,pickle
+import json,time,urllib2,pickle,redis
 from django.conf import settings
 from django.core.cache import cache
 from celery.decorators import periodic_task, task
 from celery.result import AsyncResult
 from kral.views import push_data, fetch_queries
 
+cache = redis.Redis()
+
 @periodic_task(run_every = getattr(settings, 'KRAL_WAIT', 5))
 def flickr(**kwargs):
     queries = fetch_queries()
     for query in queries:
         cache_name = "flickrfeed_%s" % query.replace(' ','').replace('_','')
-        if cache.get(cache_name,None): 
+        if cache.get(cache_name): 
             previous_result = AsyncResult(cache.get(cache_name))
             if previous_result.ready():
                 result = flickr_feed.delay(query)
@@ -24,7 +26,7 @@ def flickr_feed(query, **kwargs):
     logger = flickr_feed.get_logger(**kwargs)
     url = "http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=%s&tags=%s&format=json&nojsoncallback=1&per_page=50&extras=owner_name,geo,description,tags,date_upload" % (settings.FLICKR_API_KEY, query.replace('_','+'))
     cache_name = "flickrtopid_%s" % query.replace(' ','').replace('_','')
-    top_id_seen = cache.get(cache_name, None) or 0          
+    top_id_seen = cache.get(cache_name) or 0          
     try:
         data = json.loads(urllib2.urlopen(url).read())
         photos = data['photos']['photo']
