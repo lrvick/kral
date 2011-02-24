@@ -94,7 +94,7 @@ def twitter_stream(queries, **kwargs):
     except Exception,e:
         if e.code == 420:
             stream = None
-            logger.error("Twitter connection closed")
+            logger.info("Twitter connection closed")
         else:
             stream = None
             logger.error("Invalid/null response from server: %s" % (e))
