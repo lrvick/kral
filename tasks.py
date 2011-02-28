@@ -6,7 +6,7 @@ from celery.signals import worker_ready,beat_init
 from celery.execute import send_task
 from kral.views import push_data
 
-cache = redis.Redis()
+cache = redis.Redis(host='localhost', port=6379, db=1)
 
 ALLPLUGINS = []
 if not hasattr(settings, "KRAL_PLUGINS"): 
@@ -25,7 +25,8 @@ def kral_init(**kwargs):
     from djcelery.models import PeriodicTask,PeriodicTasks
     PeriodicTask.objects.all().delete()
     PeriodicTasks.objects.all().delete()
-    cache.flushall()
+    task_cache = redis.Redis(host='localhost', port=6379, db=0)
+    task_cache.flush()
 beat_init.connect(kral_init) 
 
 def fixurl(url):
@@ -117,6 +118,8 @@ def url_title(url,**kwargs):
     except httplib.BadStatusLine:
         data = None
     except httplib.InvalidURL:
+        data = None
+    except httplib.IncompleteRead:
         data = None
     if data:
         if '<title>' in data:

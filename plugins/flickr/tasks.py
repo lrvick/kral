@@ -1,4 +1,4 @@
-import json,time,urllib2,pickle,redis
+import json,time,urllib2,httplib,pickle,redis
 from django.conf import settings
 from django.core.cache import cache
 from celery.decorators import periodic_task, task
@@ -29,7 +29,9 @@ def flickr_feed(query, **kwargs):
     top_id_seen = cache.get(cache_name) or 0          
     try:
         data = json.loads(urllib2.urlopen(url).read())
-        photos = data['photos']['photo']
+        photos_data = data.get('photos')
+        if photos_data:
+            photos = photos_data['photo']
     except ValueError: 
         photos = None
     except urllib2.HTTPError, error:

@@ -4,7 +4,7 @@ from django.conf import settings
 from celery.execute import send_task
 from kombu import BrokerConnection, Exchange, Producer
 
-cache = redis.Redis()
+cache = redis.Redis(host='localhost', port=6379, db=1)
 
 def fetch_cache(request,service,query):
     cache_data = []
@@ -83,3 +83,5 @@ def add_query(query):
     queries.insert(0,query)
     queries = queries[:slots]
     cache.set('KRAL_QUERIES',pickle.dumps(queries))
+
+
