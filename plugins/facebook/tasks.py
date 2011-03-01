@@ -42,6 +42,8 @@ def facebook_feed(query, **kwargs):
         return
     except urllib2.HTTPError, error:
         logger.error("Facebook API returned HTTP Error: %s - %s" % (error.code,url))
+    except urllib2.URLError, error:
+        logger.error("Facebook API returned URL Error: %s - %s" % (error,url))
    
 @task
 def facebook_post(item, query, **kwargs):
@@ -51,7 +53,7 @@ def facebook_post(item, query, **kwargs):
         post_info = {
             "service" : 'facebook',
             "user" : {
-                "name": item['from']['name'],
+                "name": item['from'].get('name'),
                 "id": item['from']['id'],
             },
             "links" : [],

@@ -55,7 +55,10 @@ def twitter_feed(query, **kwargs):
             cache.set(cache_name,str(item['id']))
         return
     except urllib2.HTTPError, error:
-        logger.error("Twitter API returned HTTP Error: %s - %s" % (error.code,url))
+        logger.error("Twitter: Stream API returned HTTP Error: %s - %s" % (error.code,url))
+    except urllib2.URLError:
+            stream = None
+            logger.error("Twitter: Unable to obtain data from feed URL: %s" % (url))
 
 @task
 def twitter_feed_tweet(item, query, **kwargs):
@@ -86,18 +89,19 @@ def twitter_stream(queries, **kwargs):
                 queries.remove(query)
     logger = twitter_stream.get_logger(**kwargs)
     query_post = str("track="+",".join([q for q in queries]))
-    httprequest = urllib2.Request('http://stream.twitter.com/1/statuses/filter.json',query_post)
+    url = 'http://stream.twitter.com/1/statuses/filter.json'
+    httprequest = urllib2.Request(url,query_post)
     auth = base64.b64encode('%s:%s' % (settings.TWITTER_USER, settings.TWITTER_PASS))
     httprequest.add_header('Authorization', "basic %s" % auth)
     try:
         stream = urllib2.urlopen(httprequest)
-    except Exception,e:
+    except urllib2.HTTPError,e:
         if e.code == 420:
             stream = None
             logger.info("Twitter connection closed")
-        else:
+    except urllib2.URLError:
             stream = None
-            logger.error("Invalid/null response from server: %s" % (e))
+            logger.error("Twitter: Unable to obtain data from twitter stream URL: %s" % (url))
     if stream:
         for tweet in stream:
             data = json.loads(tweet)
