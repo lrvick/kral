@@ -5,6 +5,7 @@ from celery.decorators import task
 from celery.signals import worker_ready,beat_init
 from celery.execute import send_task
 from kral.views import push_data
+from eventlet.timeout import Timeout
 
 cache = redis.Redis(host='localhost', port=6379, db=1)
 
@@ -47,18 +48,20 @@ def url_expand(url,query,n=1,original_url=None,**kwargs):
     headers = {"User-Agent": "Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.7.6) Gecko/20050512 Firefox"}
     parsed_url = urlparse.urlsplit(url)
     request = urlparse.urlunsplit(('', '', parsed_url.path, parsed_url.query, parsed_url.fragment))
+    response = None
+    current_url = None
     try:
         connection = httplib.HTTPConnection(parsed_url.netloc)
     except httplib.InvalidURL:
         logger.error("Unable to expand Invalid URL: %s" % url)
         return False
-    try : 
-        connection.request('HEAD', request, "", headers)
-        response = connection.getresponse()
-    except Exception, e:
-        response = None
+    with Timeout(5, False):
+        try : 
+            connection.request('HEAD', request, "", headers)
+            response = connection.getresponse()
+        except Exception, e:
+            logger.error(e)
     if response:
-        current_url = None
         location = response.getheader('Location')
         if location:
             content_header = response.getheader('Content-Type');

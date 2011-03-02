@@ -50,7 +50,8 @@ def youtube_feed(query, **kwargs):
                         cache.set(cache_name,pickle.dumps(prev_list))
                     logger.info("Spawned Processors")
             except Exception, e:
-                raise e
+                logger.error('youtube_feed failed with error: %s' % e)
+                return False
    
 @task
 def youtube_video(item, query, **kwargs):
