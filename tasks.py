@@ -27,7 +27,7 @@ def kral_init(**kwargs):
     PeriodicTask.objects.all().delete()
     PeriodicTasks.objects.all().delete()
     task_cache = redis.Redis(host='localhost', port=6379, db=0)
-    task_cache.flush()
+    task_cache.flushdb()
 beat_init.connect(kral_init) 
 
 def fixurl(url):
@@ -55,12 +55,14 @@ def url_expand(url,query,n=1,original_url=None,**kwargs):
     except httplib.InvalidURL:
         logger.error("Unable to expand Invalid URL: %s" % url)
         return False
-    with Timeout(5, False):
-        try : 
+    with Timeout(5, False) as timeout:
+        try: 
             connection.request('HEAD', request, "", headers)
             response = connection.getresponse()
         except Exception, e:
             logger.error(e)
+        except Timeout:
+            logger.info("URL Timed out: %s" % url)
     if response:
         location = response.getheader('Location')
         if location:
@@ -71,41 +73,41 @@ def url_expand(url,query,n=1,original_url=None,**kwargs):
                     current_url = unicode(location, encoding)
                 except LookupError:
                     pass
-        n += 1
-        if n > 3 or current_url == None:
-            cache_name = "alllinks_%s" % str(query.replace(' ',''));
-            try:
-                links = pickle.loads(cache.get(cache_name))
-            except:
-                links = []
-            url = fixurl(url)
-            new_link = False
-            url_cache_name = base64.b64encode(url)[:250]
-            cached_title = cache.get(url_cache_name)
-            title = None
-            if cached_title:
-                title = base64.b64decode(cached_title)
-                unicode(title,'utf8')
-            else:
-                title = None
-            for link in links:
-                if link['href'] == url:
-                    link['count'] += 1
-                    if link['count'] > 1:
-                        if  title:
-                            link['title'] = title
-                        else: 
-                            url_title.delay(url)
-                    new_link = True
-                    post_info = link
-            if new_link == False:
-                post_info = {'service':'links','href':url,'count':1,'title':title}
-                links.append(post_info)
-            links = sorted(links, key=lambda link: link['count'],reverse=True)
-            cache.set(cache_name, pickle.dumps(links))
-            push_data(post_info,queue=query)
+    n += 1
+    if n > 3 or current_url == None:
+        cache_name = "alllinks_%s" % str(query.replace(' ',''));
+        try:
+            links = pickle.loads(cache.get(cache_name))
+        except:
+            links = []
+        url = fixurl(url)
+        new_link = False
+        url_cache_name = base64.b64encode(url)[:250]
+        cached_title = cache.get(url_cache_name)
+        title = None
+        if cached_title:
+            title = base64.b64decode(cached_title)
+            unicode(title,'utf8')
         else:
-            url_expand.delay(current_url,query,n,original_url)
+            title = None
+        for link in links:
+            if link['href'] == url:
+                link['count'] += 1
+                if link['count'] > 1:
+                    if  title:
+                        link['title'] = title
+                    else: 
+                        url_title.delay(url)
+                new_link = True
+                post_info = link
+        if new_link == False:
+            post_info = {'service':'links','href':url,'count':1,'title':title}
+            links.append(post_info)
+        links = sorted(links, key=lambda link: link['count'],reverse=True)
+        cache.set(cache_name, pickle.dumps(links))
+        push_data(post_info,queue=query)
+    else:
+        url_expand.delay(current_url,query,n,original_url)
 
 @task
 def url_title(url,**kwargs):
