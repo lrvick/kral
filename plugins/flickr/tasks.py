@@ -27,21 +27,19 @@ def flickr_feed(query, **kwargs):
     url = "http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=%s&tags=%s&format=json&nojsoncallback=1&per_page=50&extras=owner_name,geo,description,tags,date_upload" % (settings.FLICKR_API_KEY, query.replace('_','+'))
     cache_name = "flickrtopid_%s" % query.replace(' ','').replace('_','')
     top_id_seen = cache.get(cache_name) or 0          
+    photos = None
     try:
         data = json.loads(urllib2.urlopen(url).read())
         photos_data = data.get('photos')
         if photos_data:
             photos = photos_data['photo']
     except ValueError: 
-        photos = None
+        pass
     except urllib2.HTTPError, error:
-        photos = None
         logger.error("Flickr API returned HTTP Error: %s - %s" % (error.code,url))
     except urllib2.URLError, error:
-        photos = None
         logger.error("Flickr API returned URL Error: %s - %s" % (error,url))
     except httplib.BadStatusLine, error:
-        photos = None
         logger.error("Flickr API returned a bad status line: %s" % (error))
     if photos:
         photo_ids = [int(p['id']) for p in photos]

@@ -111,6 +111,7 @@ def url_expand(url,query,n=1,original_url=None,**kwargs):
 
 @task
 def url_title(url,**kwargs):
+    logger = url_expand.get_logger(**kwargs)
     cache_name = base64.b64encode(url)[:250]
     request = urllib2.Request(url)
     try:
@@ -125,6 +126,8 @@ def url_title(url,**kwargs):
     except httplib.InvalidURL:
         data = None
     except httplib.IncompleteRead:
+        data = None
+    except ValueError:
         data = None
     if data:
         if '<title>' in data:
@@ -146,6 +149,6 @@ def url_title(url,**kwargs):
                         print(e)
                         title = None
             else:
-                error.log("Unknown content type for URL: %s" % url)
+                loggger.error("Unknown content type for URL: %s" % url)
 
 #vim: ai ts=4 sts=4 et sw=4
