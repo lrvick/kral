@@ -1,6 +1,6 @@
 # Kral #
 
-A social media crawling engine, built on Django. 
+A social media crawling and unification platform.
 
 Aims to provide a framework for rapidly collect data from social networks
 based on defined search criteria. Built to be a foundation for a wide 
@@ -11,8 +11,9 @@ as much data as possible with the fewest resources.
 ## Current Features ##
 
   * Ability to harvest user information, and posts from Twitter, Facebook, Buzz,
-    Identica, Youtube, Flickr... 
+    Identica, Youtube, Flickr, Wordpress 
   * Ability to expand all short-urls into full real URLs.
+  * Ability to track number of mentions of a given URL across multiple networks.
   * Modular design. Easily add or disable plugins for different social networks.
 
 
@@ -26,7 +27,7 @@ KRAL_PLUGINS as a list in settings.py
 
 Example:
 
-    KRAL_PLUGINS = ["Twitter", "Facebook"]    
+    KRAL_PLUGINS = ["Twitter", "Facebook","Identica"]    
 
 
 ### KRAL_SLOTS ###
@@ -47,7 +48,6 @@ If all slots are full then this defines how fast slots rotate between queries
 Example:
 
     KRAL_TIME = "5"
-
 
 With KRAL_TIME set to 5, in the case that all KRAL_SLOTS are full, a new search 
 would have to wait 5 seconds before Kral will start checking for any new data. 
