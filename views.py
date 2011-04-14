@@ -63,7 +63,7 @@ def push_data(data,queue):
     exchange_send(data,'default')
     if data.get('links',None):
         for link in data['links']:
-            send_task("kral.tasks.url_expand", [link['href'], queue])
+            send_task("kral.tasks.url_process", [link['href'], queue])
 
 def add_query(query):
     query = query.lower()

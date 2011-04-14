@@ -1,4 +1,12 @@
-import httplib,urlparse,re,sys,os,datetime,djcelery,pickle,urllib2,base64,urllib,redis
+import os
+import datetime
+import djcelery
+import pickle
+import urllib2
+import base64
+import urllib
+import redis
+import ewrl
 from django.conf import settings
 from celery.task.control import inspect
 from celery.decorators import task
@@ -32,129 +40,52 @@ def kral_init(**kwargs):
 beat_init.connect(kral_init) 
 
 @task
-def url_expand(url,query,n=1,original_url=None,**kwargs):
-    logger = url_expand.get_logger(**kwargs)
-    def fixurl(url):
-        domain, query = urllib.splitquery(url)
-        new_url = None
-        if query:
-            query = re.sub('utm_(source|medium|campaign)\=([^&]+)&?', '', query)
-            new_url = urlparse.urljoin(domain, "?"+query)
-        else:
-            new_url = domain 
-        return new_url
-    def expand(url,query,n=1,original_url=None,**kwargs):
-        if n == 1:
-            original_url = url
-        headers = {"User-Agent": "Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.7.6) Gecko/20050512 Firefox"}
-        parsed_url = urlparse.urlsplit(url)
-        request = urlparse.urlunsplit(('', '', parsed_url.path, parsed_url.query, parsed_url.fragment))
-        response = None
-        current_url = None
-        try:
-            connection = httplib.HTTPConnection(parsed_url.netloc)
-        except httplib.InvalidURL:
-            logger.error("Unable to expand Invalid URL: %s" % url)
-            return False
-            try: 
-                connection.request('HEAD', request, "", headers)
-                response = connection.getresponse()
+def url_process(url,query,n=1,original_url=None,**kwargs):
+    logger = url_process.get_logger(**kwargs)
+    all_links_cache_name = "alllinks_%s" % str(query.replace(' ',''));
+    expanded_cache_name = "expanded_%s" % base64.b64encode(url)
+    url_expanded = cache.get(expanded_cache_name)
+    if not url_expanded:
+        with Timeout(10, False) as timeout:
+            try:
+                url_expanded = ewrl.url_expand(url)
+                if url_expanded is False:
+                    url_expanded = url
+            except Timeout:
+                logger.error("Timed out expanding URL: %s" % url)
+                url_expanded = url
             except Exception, e:
                 logger.error(e)
-        if response:
-            location = response.getheader('Location')
-            if location:
-                content_header = response.getheader('Content-Type');
-                if content_header:
-                    encoding = content_header.split('charset=')[-1]
-                    try:
-                        current_url = unicode(location, encoding)
-                    except LookupError:
-                        pass
-        n += 1
-        if n > 3 or current_url == None:
-            cache_name = "alllinks_%s" % str(query.replace(' ',''));
+                url_expanded = url
+            cache.set(expanded_cache_name,url_expanded)
+    title_cache_name = "title_%s" % base64.b64encode(url_expanded)
+    url_title = cache.get(title_cache_name)
+    if not url_title:
+        with Timeout(10, False) as timeout:
             try:
-                links = pickle.loads(cache.get(cache_name))
-            except:
-                links = []
-            url = fixurl(url)
-            new_link = False
-            url_cache_name = base64.b64encode(url.encode('unicode-escape'))[:250]
-            cached_title = cache.get(url_cache_name)
-            title = None
-            if cached_title:
-                title = base64.b64decode(cached_title)
-                unicode(title,'utf8')
-            else:
-                title = None
-            for link in links:
-                if link['href'] == url:
-                    link['count'] += 1
-                    if link['count'] > 1:
-                        if  title:
-                            link['title'] = title
-                        else: 
-                            url_title.delay(url)
-                    new_link = True
-                    post_info = link
-            if new_link == False:
-                post_info = {'service':'links','href':url,'count':1,'title':title}
-                links.append(post_info)
-            links = sorted(links, key=lambda link: link['count'],reverse=True)
-            cache.set(cache_name, pickle.dumps(links))
-            push_data(post_info,queue=query)
-        else:
-            expand(current_url,query,n,original_url)
-    with Timeout(10, False) as timeout:
-        try:
-            expand(url,query,n=1,original_url=None,**kwargs)
-        except Timeout:
-            logger.error("URL Timed out: %s" % url)
-        except Exception, e:
-            logger.error(e)
-    
-@task
-def url_title(url,**kwargs):
-    logger = url_expand.get_logger(**kwargs)
-    cache_name = base64.b64encode(url)[:250]
-    request = urllib2.Request(url)
-    data = None
+                url_title = ewrl.url_title(url_expanded)
+            except Timeout:
+                logger.error("Timed out fetching title for URL: %s" % url_expanded)
+                url_title = 'No Title'
+            except Exception, e:
+                logger.error(e)
+                url_title = 'No Title'
+            cache.set(title_cache_name,url_title)
+    mentions_cache_name = "mentions_%s" % base64.b64encode(url_expanded)
+    url_mentions_cached = cache.get(mentions_cache_name)
+    if not url_mentions_cached:
+        url_mentions = 1
+    else:
+        url_mentions = int(url_mentions_cached) + 1
+    cache.set(mentions_cache_name,url_mentions)
+    post_info = {'service':'links','href':url_expanded,'count':url_mentions,'title':url_title}
     try:
-        response = urllib2.urlopen(request)
-        data = response.read()
-    except urllib2.HTTPError:
-        pass
-    except urllib2.URLError:
-        pass
-    except httplib.BadStatusLine:
-        pass
-    except httplib.InvalidURL:
-        pass
-    except httplib.IncompleteRead:
-        data = None
-    except ValueError:
-        data = None
-    if data:
-        if '<title>' in data:
-            headers = response.info()
-            content_type = headers.get('content-type',None)
-            if content_type:
-                raw_encoding = content_type.split('charset=')[-1]
-                if 'text/html' in raw_encoding:
-                    encoding = 'unicode-escape'
-                else:
-                    encoding = raw_encoding
-                title_search = re.search('(?<=<title>).*(?=<\/title>)',data)
-                if title_search:
-                    try:
-                        title = unicode(title_search.group(0),encoding)
-                        #print(encoding,url,title[:20])
-                        cache.set(cache_name,base64.b64encode(title.encode('utf8')))
-                    except Exception, e:
-                        print(e)
-                        title = None
-            else:
-                logger.error("Unknown content type for URL: %s" % url)
+       links = pickle.loads(cache.get(all_links_cache_name))
+    except:
+        links = []
+    links.append(post_info)
+    links = sorted(links, key=lambda link: link['count'],reverse=True)
+    cache.set(all_links_cache_name, pickle.dumps(links))
+    push_data(post_info,queue=query)
 
 #vim: ai ts=4 sts=4 et sw=4
