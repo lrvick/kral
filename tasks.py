@@ -85,7 +85,7 @@ def url_process(url,query,n=1,original_url=None,**kwargs):
         links = []
     new_link = True
     for link in links:
-        if link['href'] == url:
+        if link['href'] == url_expanded:
             link['count'] += 1
             new_link = False
     if new_link:
