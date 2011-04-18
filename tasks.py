@@ -83,7 +83,13 @@ def url_process(url,query,n=1,original_url=None,**kwargs):
        links = pickle.loads(cache.get(all_links_cache_name))
     except:
         links = []
-    links.append(post_info)
+    new_link = True
+    for link in links:
+        if link['href'] == url:
+            link['count'] += 1
+            new_link = False
+    if new_link:
+        links.append(post_info)
     links = sorted(links, key=lambda link: link['count'],reverse=True)
     cache.set(all_links_cache_name, pickle.dumps(links))
     push_data(post_info,queue=query)
