@@ -24,7 +24,7 @@ def buzz(**kwargs):
 def buzz_feed(query,**kwargs):
     logger = buzz_feed.get_logger(**kwargs)
     time_format = '%Y-%m-%dT%H:%M:%S.%fZ'
-    url = "http://www.googleapis.com/buzz/v1/activities/search?alt=json&orderby=published&q=%s" % query.replace('_','')
+    url = "http://www.googleapis.com/buzz/v1/activities/search?alt=json&orderby=published&q=%s&key=%s" % (query.replace('_',''),settings.BUZZ_API_KEY)
     cache_name = "buzzfeed_prevdate_%s" % query
     prev_date = cache.get(cache_name)
     if prev_date == None:
