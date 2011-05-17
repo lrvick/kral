@@ -28,7 +28,7 @@ def facebook_feed(query, **kwargs):
     if cache.get(cache_name):
         url = cache.get(cache_name)
     else:
-        url = "https://graph.facebook.com/search?q=%s&type=post&limit=25" % query.replace('_','%20')
+        url = "https://graph.facebook.com/search?q=%s&type=post&limit=25&access_token=%s" % (query.replace('_','%20'),settings.FACEBOOK_API_KEY)
     try:
         data = json.loads(urllib2.urlopen(url).read())
         items = data['data']
