@@ -63,7 +63,7 @@ def url_process(url,query,n=1,original_url=None,**kwargs):
     if not url_title:
         with Timeout(10, False) as timeout:
             try:
-                url_title = ewrl.url_title(url_expanded)
+                url_title, url_feed = ewrl.url_data(url_expanded)
             except Timeout:
                 logger.error("Timed out fetching title for URL: %s" % url_expanded)
                 url_title = 'No Title'
