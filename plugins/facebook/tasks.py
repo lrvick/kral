@@ -17,42 +17,56 @@ except ImportError:
 
 @periodic_task(run_every = getattr(settings, 'KRAL_WAIT', 5))
 def run(**kwargs):
-    queries = fetch_queries()
-    for query in queries:
-        cache_name = "facebookfeed_%s" % query
-        if cache.get(cache_name):
-            previous_result = AsyncResult(cache.get(cache_name))
-            if previous_result.ready():
-                result = facebook_feed.delay(query)
-                cache.set(cache_name,result.task_id)
+    if not cache.get('facebook_rate_limit_time'):
+        cache.set('facebook_rate_limit_time',int(round(time.time())))
+        cache.set('facebook_rate_limit','0')
+    else:
+        rate_limit_time = cache.get('facebook_rate_limit_time')
+        current_time = int(round(time.time()))
+        diff = int(current_time) - int(rate_limit_time)
+        if diff >= 600:
+            cache.set('facebook_rate_limit_time',int(round(time.time())))
+            cache.set('facebook_rate_limit','0')
         else:
-            result = facebook_feed.delay(query)
-            cache.set(cache_name,result.task_id)
-            return
+            queries = fetch_queries()
+            for query in queries:
+                cache_name = "facebookfeed_%s" % query
+                if cache.get(cache_name):
+                    previous_result = AsyncResult(cache.get(cache_name))
+                    if previous_result.ready():
+                        result = facebook_feed.delay(query)
+                        cache.set(cache_name,result.task_id)
+                else:
+                    result = facebook_feed.delay(query)
+                    cache.set(cache_name,result.task_id)
+                    return
 
 @task        
 def facebook_feed(query, **kwargs):
-    logger = facebook_feed.get_logger(**kwargs)
-    cache_name = "facebook_prevurl_%s" % query
-    if cache.get(cache_name):
-        url = cache.get(cache_name)
-    else:
-        url = "https://graph.facebook.com/search?q=%s&type=post&limit=25&access_token=%s" % (query.replace('_','%20'),settings.FACEBOOK_API_KEY)
-    try:
-        data = json.loads(urllib2.urlopen(url).read())
-        items = data['data']
-        if data.get('paging'):
-            prev_url = data['paging']['previous']
+        logger = facebook_feed.get_logger(**kwargs)
+        cache_name = "facebook_prevurl_%s" % query
+        rate_limit = int(cache.get('facebook_rate_limit'))
+        rate_limit += 1
+        cache.set('facebook_rate_limit',rate_limit)
+        if cache.get(cache_name):
+            url = cache.get(cache_name)
         else:
-            prev_url = url
-        for item in items:
-            facebook_post.delay(item, query)
-        cache.set(cache_name,str(prev_url))
-        return
-    except urllib2.HTTPError, error:
-        logger.error("Facebook API returned HTTP Error: %s - %s" % (error.code,url))
-    except urllib2.URLError, error:
-        logger.error("Facebook API returned URL Error: %s - %s" % (error,url))
+            url = "https://graph.facebook.com/search?q=%s&type=post&limit=25&access_token=%s" % (query.replace('_','%20'),settings.FACEBOOK_API_KEY)
+        try:
+            data = json.loads(urllib2.urlopen(url).read())
+            items = data['data']
+            if data.get('paging'):
+                prev_url = data['paging']['previous']
+            else:
+                prev_url = url
+            for item in items:
+                facebook_post.delay(item, query)
+            cache.set(cache_name,str(prev_url))
+            return
+        except urllib2.HTTPError, error:
+            logger.error("Facebook API returned HTTP Error: %s - %s" % (error.code,url))
+        except urllib2.URLError, error:
+            logger.error("Facebook API returned URL Error: %s - %s" % (error,url))
    
 @task
 def facebook_post(item, query, **kwargs):
