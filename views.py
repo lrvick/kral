@@ -1,10 +1,17 @@
-import datetime,json,pickle,redis
-from django.http import HttpResponse, Http404
-from django.conf import settings
+import datetime
+import json
+import pickle
 from celery.execute import send_task
+from django.conf import settings
+from django.http import HttpResponse, Http404
 from kombu import BrokerConnection, Exchange, Producer
 
-cache = redis.Redis(host='localhost', port=6379, db=1)
+try:
+    import redis
+    cache = redis.Redis(host='localhost', port=6379, db=1)
+except ImportError:
+    redis = False
+    from django.core.cache import cache
 
 def fetch_cache(request,service,query):
     cache_data = []

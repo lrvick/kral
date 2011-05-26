@@ -1,11 +1,22 @@
-import json,time,urllib,urllib2,datetime,rfc822,re,redis
-from xml.dom import minidom
-from django.conf import settings
+import datetime
+import json
+import re
+import rfc822
+import time
+import urllib
+import urllib2
 from celery.decorators import periodic_task, task
 from celery.result import AsyncResult
+from django.conf import settings
 from kral.views import push_data, fetch_queries
+from xml.dom import minidom
 
-cache = redis.Redis()
+try:
+    import redis
+    cache = redis.Redis(host='localhost', port=6379, db=1)
+except ImportError:
+    redis = False
+    from django.core.cache import cache
 
 @periodic_task(run_every = getattr(settings, 'KRAL_WAIT', 5))
 def wordpress(**kwargs):
