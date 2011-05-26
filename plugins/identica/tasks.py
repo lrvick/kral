@@ -1,9 +1,12 @@
-import urllib2, json, datetime, time
+import datetime
+import json
+import time
+import urllib2
 from celery.task import Task
-from kral.tasks import *
-from kral.models import Query
-from kral.views import push_data
 from django.conf import settings
+from kral.models import Query
+from kral.tasks import *
+from kral.views import push_data
 
 last_id = None
 

@@ -1,11 +1,20 @@
-import json,time,urllib2,httplib,pickle,redis
-from django.conf import settings
-from django.core.cache import cache
+import httplib
+import json
+import pickle
+import time
+import urllib2
 from celery.decorators import periodic_task, task
 from celery.result import AsyncResult
+from django.conf import settings
+from django.core.cache import cache
 from kral.views import push_data, fetch_queries
 
-cache = redis.Redis()
+try:
+    import redis
+    cache = redis.Redis(host='localhost', port=6379, db=1)
+except ImportError:
+    redis = False
+    from django.core.cache import cache
 
 @periodic_task(run_every = getattr(settings, 'KRAL_WAIT', 5))
 def flickr(**kwargs):

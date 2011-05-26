@@ -1,11 +1,22 @@
-import urllib2,json,base64,datetime,pickle,rfc822,re,redis
-from django.conf import settings
+import base64
+import datetime
+import json
+import pickle
+import re
+import rfc822
+import urllib2
 from celery.decorators import periodic_task,task
 from celery.result import AsyncResult
+from django.conf import settings
 from kral.views import push_data, fetch_queries
 
-cache = redis.Redis()
-    
+try:
+    import redis
+    cache = redis.Redis(host='localhost', port=6379, db=1)
+except ImportError:
+    redis = False
+    from django.core.cache import cache
+
 @periodic_task(run_every = getattr(settings, 'KRAL_WAIT', 5))
 def twitter(**kwargs):
     queries = fetch_queries()
