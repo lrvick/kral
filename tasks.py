@@ -49,15 +49,15 @@ def url_process(url,query,n=1,original_url=None,**kwargs):
         with Timeout(10, False) as timeout:
             try:
                 url_expanded = ewrl.url_expand(url)
-                if url_expanded is False:
-                    url_expanded = url
             except Timeout:
                 logger.error("Timed out expanding URL: %s" % url)
                 url_expanded = url
             except Exception, e:
                 logger.error(e)
                 url_expanded = url
-            cache.set(expanded_cache_name,url_expanded)
+                cache.set(expanded_cache_name,url_expanded)
+    url_mentions = 300
+    url_title = "fuuuuuuu"
     title_cache_name = "title_%s" % base64.b64encode(url_expanded)
     url_title = cache.get(title_cache_name)
     if not url_title:
@@ -70,7 +70,7 @@ def url_process(url,query,n=1,original_url=None,**kwargs):
             except Exception, e:
                 logger.error(e)
                 url_title = 'No Title'
-            cache.set(title_cache_name,url_title)
+                cache.set(title_cache_name,url_title)
     mentions_cache_name = "mentions_%s" % base64.b64encode(url_expanded)
     url_mentions_cached = cache.get(mentions_cache_name)
     if not url_mentions_cached:
