@@ -14,6 +14,7 @@ from celery.signals import worker_ready,beat_init
 from celery.execute import send_task
 from kral.views import push_data
 from eventlet.timeout import Timeout
+from models import Feed
 
 cache = redis.Redis(host='localhost', port=6379, db=1)
 
@@ -57,13 +58,16 @@ def url_process(url,query,n=1,original_url=None,**kwargs):
                 url_expanded = url
                 cache.set(expanded_cache_name,url_expanded)
     url_mentions = 300
-    url_title = "fuuuuuuu"
     title_cache_name = "title_%s" % base64.b64encode(url_expanded)
     url_title = cache.get(title_cache_name)
     if not url_title:
         with Timeout(10, False) as timeout:
             try:
                 url_title, url_feed = ewrl.url_data(url_expanded)
+                if url_feed is not None:
+                    feed = Feed(href=url_feed,title=url_title)
+                    feed.save()
+                    print 'saved new feed: %s' % url_feed
             except Timeout:
                 logger.error("Timed out fetching title for URL: %s" % url_expanded)
                 url_title = 'No Title'
