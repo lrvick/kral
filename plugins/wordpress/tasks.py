@@ -13,7 +13,7 @@ from xml.dom import minidom
 
 try:
     import redis
-    cache = redis.Redis(host='localhost', port=6379, db=1)
+    cache = redis.Redis(host='localhost', port=6379, db=0)
 except ImportError:
     redis = False
     from django.core.cache import cache
