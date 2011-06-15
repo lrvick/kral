@@ -7,15 +7,9 @@ import rfc822
 import urllib2
 from celery.decorators import periodic_task,task
 from celery.result import AsyncResult
-from django.conf import settings
-from kral.views import push_data, fetch_queries
 
-try:
-    import redis
-    cache = redis.Redis(host='localhost', port=6379, db=0)
-except ImportError:
-    redis = False
-    from django.core.cache import cache
+from kral.utils import cache, push_data, fetch_queries 
+from kral import settings
 
 @periodic_task(run_every = getattr(settings, 'KRAL_WAIT', 5))
 def twitter(**kwargs):

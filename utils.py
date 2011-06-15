@@ -5,15 +5,11 @@ import datetime
 import json
 import pickle
 
-#try:
-#    import redis
-#    cache = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=settings.REDIS_DB)
-#except AttributeError:
-#    raise
-
 try:
-    import memcache
-    cache = memcache.Client([settings.MEMCACHE_BACKEND], debug=0)
+    import redis
+    cache = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=settings.REDIS_DB)
+except AttributeError:
+    raise
 except ImportError:
     raise
 

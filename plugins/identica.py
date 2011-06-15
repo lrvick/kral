@@ -6,7 +6,7 @@ from celery.task import Task
 from django.conf import settings
 from kral.models import Query
 from kral.tasks import *
-from kral.views import push_data
+from kral.utils import push_data
 
 last_id = None
 
