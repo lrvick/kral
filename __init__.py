@@ -1,0 +1,2 @@
+def collect(query):
+    pass

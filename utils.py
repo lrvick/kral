@@ -1,19 +1,23 @@
+from kral import settings
+from kombu import BrokerConnection, Exchange, Producer
+from celery.execute import send_task
 import datetime
 import json
 import pickle
-from celery.execute import send_task
-from django.conf import settings
-from django.http import HttpResponse, Http404
-from kombu import BrokerConnection, Exchange, Producer
+
+#try:
+#    import redis
+#    cache = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=settings.REDIS_DB)
+#except AttributeError:
+#    raise
 
 try:
-    import redis
-    cache = redis.Redis(host='localhost', port=6379, db=1)
+    import memcache
+    cache = memcache.Client([settings.MEMCACHE_BACKEND], debug=0)
 except ImportError:
-    redis = False
-    from django.core.cache import cache
+    raise
 
-def fetch_cache(request,service,query):
+def fetch_cache(service, query):
     cache_data = []
     if service == "all":
         for service in settings.KRAL_PLUGINS:
@@ -25,21 +29,23 @@ def fetch_cache(request,service,query):
     else:
         cache_name = "%s_%s" % (service,query)
         cache_data = pickle.loads(cache.get(cache_name))
-    return HttpResponse(json.dumps(cache_data))
+    return json.dumps(cache_data)
 
-def fetch_queries(**kwargs):
+def fetch_queries():
     slots = getattr(settings, 'KRAL_SLOTS', 1)
     try:
         cached_queries = pickle.loads(cache.get('KRAL_QUERIES'))[:slots]
         queries = []
         for query in cached_queries:
-            queries.append(query.replace(' ','_'))
+            query.replace(' ', '_')
+            queries.append(query)
     except Exception:
         settings_queries = getattr(settings, 'KRAL_QUERIES', ['foo','bar','null'])
         queries = []
         for query in settings_queries:
-            queries.append(query.replace(' ','_'))
-        cache.set('KRAL_QUERIES',pickle.dumps(queries))
+            query.replace(' ', '_') 
+            queries.append(query)
+        cache.set('KRAL_QUERIES', pickle.dumps(queries))
     return queries
 
 def exchange_send(data,exchange):

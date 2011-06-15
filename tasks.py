@@ -1,52 +1,13 @@
 import base64
-import datetime
-import djcelery
 import ewrl
-import os
 import pickle
 import urllib
 import urllib2
 from celery.decorators import task
-from celery.execute import send_task
-from celery.signals import worker_ready,beat_init
-from celery.task.control import inspect
-from django.conf import settings
 from eventlet.timeout import Timeout
-from models import Feed
-from kral.views import push_data
-
-try:
-    import redis
-    cache = redis.Redis(host='localhost', port=6379, db=1)
-except ImportError:
-    redis = False
-    from django.core.cache import cache
-
-
-ALLPLUGINS = []
-if not hasattr(settings, "KRAL_PLUGINS"): 
-    for plugin in [x.lower() for x in os.listdir(os.path.join(settings.PROJECT_PATH,'kral/plugins')) if not x.startswith('__')]:
-        __import__('kral.plugins.'+plugin+'.tasks', fromlist=["*"])
-        ALLPLUGINS.append(plugin.title())
-else:
-    for plugin in settings.KRAL_PLUGINS:
-        plugin = plugin.lower()
-        try:
-            __import__('kral.plugins.'+plugin+'.tasks', fromlist=["*"])
-        except ImportError:
-            raise ImportError('Module %s does not exist.' % plugin)
-
-def kral_init(**kwargs):
-    from djcelery.models import PeriodicTask,PeriodicTasks
-    PeriodicTask.objects.all().delete()
-    PeriodicTasks.objects.all().delete()
-    if redis:
-        task_cache = redis.Redis(host='localhost', port=6379, db=0)
-        task_cache.flushdb()
-    else:
-        task_cache = cache
-    cache.set('KRAL_QUERIES',settings.KRAL_QUERIES)
-beat_init.connect(kral_init) 
+from kral import settings
+from kral.utils import cache
+from plugins import *
 
 @task
 def url_process(url,query,n=1,original_url=None,**kwargs):
