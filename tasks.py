@@ -34,8 +34,9 @@ def url_process(url,query,n=1,original_url=None,**kwargs):
             try:
                 url_title, url_feed = ewrl.url_data(url_expanded)
                 if url_feed is not None:
-                    feed = Feed(href=url_feed,title=url_title)
-                    feed.save()
+                    #TODO: this was our only dependency on django models. lets re-think this.
+                    #feed = Feed(href=url_feed,title=url_title)
+                    #feed.save()
                     print 'saved new feed: %s' % url_feed
             except Timeout:
                 logger.error("Timed out fetching title for URL: %s" % url_expanded)

@@ -92,5 +92,3 @@ def add_query(query):
     queries.insert(0,query)
     queries = queries[:slots]
     cache.set('KRAL_QUERIES',pickle.dumps(queries))
-
-
