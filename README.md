@@ -18,35 +18,35 @@ keyword(s), and yeilding the retreived data in a unified format.
 
 ## Requirements ##
 
-A running service capable of acting as a task management backend.
+Celery is used for task management within kral, and celery at a minimum requires
+a key/value store to keep track of the running tasks.
 
-Currently supported backends are:
+Kral itself also needs a key/value store to track running queries etc.
 
-Redis, Memcached, MongoDB, Beanstalk, CouchDB, RabbitMQ and ActiveMQ
+Redis fufills both of these requirements, and for means of simple demployment,
+is the default.
+
+For production use however, RabbitMQ is far better suited as a backend for 
+celery itself.
 
 ## Usage / Installation ##
 
-### Install dependencies
+1. Edit settings.py to suit your needs
 
-```shell
+2. Edit celeryconfig.py to suit your needs
 
-pip install -r requirements.txt
+3. Install dependencies
 
+    pip install -r requirements.txt
 
-```
+3. Start Celery
 
-### Start krald
+    celeryd -B
 
-```shell
+4.  Collect data with kral.collect()
 
-python krald.py localhost 8080
-
-```
-
-### Collect data with kral.collect()
-
-From here you can connect to your backend with kral.connect() and start 
-using the kral.collect() generator to collect data within your appliction.
+From here you can start using the kral.collect() generator to collect data 
+within your appliction.
 
 Example that outputs the latest social data on "android"
 
@@ -54,11 +54,7 @@ Example that outputs the latest social data on "android"
 
 import kral
 
-// connect to krald
-connection = kral.connect('localhost',8080) 
-
-// print live data on 'android'
-for item in connection.collect('android'):
+for item in kral.collect('android'):
     print "%s | %s" % (item.service,item.text)
 
 ```
