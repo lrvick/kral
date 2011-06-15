@@ -1,18 +1,30 @@
+"""
+Celery configuration
+
+Documentation: http://ask.github.com/celery/configuration.html
+
+"""
+
 from kral import settings
 
-#Celery Configs
-BROKER_HOST = 'localhost'
-BROKER_POST = 5672
-BROKER_USER = 'guest'
-BROKER_PASSOWRD = ''
-BROKER_VHOST = ''
-
-CELERY_RESULT_BACKEND = 'redis'
 CELERY_IMPORTS = ('kral.tasks',) 
 
+CELERYD_POOL = 'eventlet'
+
+CELERYD_CONCURRENCY = 300
+
+# Task Broker Backend Settings
+BROKER_BACKEND = 'redis'
+BROKER_HOST = getattr(settings, 'REDIS_HOST')
+BROKER_PORT = getattr(settings, 'REDIS_PORT')
+BROKER_VHOST = "/"
+BROKER_USER = "guest"
+BROKER_PASSWORD = getattr(settings, 'REDIS_PASSWORD')
+
+#Task Result Backend Settings
 CELERY_RESULT_BACKEND = 'redis'
 REDIS_HOST = getattr(settings, 'REDIS_HOST')
 REDIS_PORT = getattr(settings, 'REDIS_PORT')
-REDIS_DB   = getattr(settings,   'REDIS_DB')
+REDIS_PASSWORD = getattr(settings, 'REDIS_PASSWORD')
+REDIS_DB   = getattr(settings, 'REDIS_DB')
 REDIS_CONNECT_RETRY = True
-
