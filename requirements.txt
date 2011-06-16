@@ -1,3 +1,4 @@
 redis
 celery
 eventlet
+lxml
