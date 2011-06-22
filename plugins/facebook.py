@@ -6,11 +6,11 @@ import urllib2
 from celery.decorators import periodic_task,task
 from celery.result import AsyncResult
 
-from kral.utils import cache, push_data, fetch_queries 
+from kral.utils import cache, push_data
 from kral import settings
 
-@periodic_task(run_every = getattr(settings, 'KRAL_WAIT', 5))
-def run(**kwargs):
+@task
+def facebook(queries,**kwargs):
     if not cache.get('facebook_rate_limit_time'):
         cache.set('facebook_rate_limit_time',int(round(time.time())))
         cache.set('facebook_rate_limit','0')
@@ -22,7 +22,7 @@ def run(**kwargs):
             cache.set('facebook_rate_limit_time',int(round(time.time())))
             cache.set('facebook_rate_limit','0')
         else:
-            queries = fetch_queries()
+            task_ids = []
             for query in queries:
                 cache_name = "facebookfeed_%s" % query
                 if cache.get(cache_name):
@@ -30,10 +30,12 @@ def run(**kwargs):
                     if previous_result.ready():
                         result = facebook_feed.delay(query)
                         cache.set(cache_name,result.task_id)
+                        task_ids.append(result.get())
                 else:
                     result = facebook_feed.delay(query)
                     cache.set(cache_name,result.task_id)
-                    return
+                    task_ids.append(result.get())
+            return task_ids
 
 @task        
 def facebook_feed(query, **kwargs):
@@ -53,10 +55,12 @@ def facebook_feed(query, **kwargs):
                 prev_url = data['paging']['previous']
             else:
                 prev_url = url
+            task_ids = []
             for item in items:
-                facebook_post.delay(item, query)
+                result = facebook_post.delay(item, query)
+                task_ids.append(result.task_id)
             cache.set(cache_name,str(prev_url))
-            return
+            return task_ids
         except urllib2.HTTPError, error:
             logger.error("Facebook API returned HTTP Error: %s - %s" % (error.code,url))
         except urllib2.URLError, error:
