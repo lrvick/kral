@@ -5,52 +5,30 @@ import time
 import urllib2
 from celery.task import task,TaskSet
 from celery.result import AsyncResult
-
 from utils import cache
 import settings
 
-@task
-def facebook(queries,**kwargs):
-    if not cache.get('facebook_rate_limit_time'):
-        cache.set('facebook_rate_limit_time',int(round(time.time())))
-        cache.set('facebook_rate_limit','0')
-    else:
-        rate_limit_time = cache.get('facebook_rate_limit_time')
-        current_time = int(round(time.time()))
-        diff = int(current_time) - int(rate_limit_time)
-        if diff >= 600:
-            cache.set('facebook_rate_limit_time',int(round(time.time())))
-            cache.set('facebook_rate_limit','0')
-            return None
-        else:
-            return TaskSet(facebook_feed.subtask((query, )) for query in queries).apply_async()
-
 
 @task        
-def facebook_feed(query, **kwargs):
-        logger = facebook_feed.get_logger(**kwargs)
-        cache_name = "facebook_prevurl_%s" % query
-        rate_limit = int(cache.get('facebook_rate_limit'))
-        rate_limit += 1
-        cache.set('facebook_rate_limit',rate_limit)
-        if cache.get(cache_name):
-            url = cache.get(cache_name)
+def facebook(query, refresh_url=None, **kwargs):
+        logger = facebook.get_logger(**kwargs)
+        if refresh_url:
+            url = refresh_url
         else:
             url = "https://graph.facebook.com/search?q=%s&type=post&limit=25&access_token=%s" % (query.replace('_','%20'),settings.FACEBOOK_API_KEY)
         try:
             data = json.loads(urllib2.urlopen(url).read())
             items = data['data']
             if data.get('paging'):
-                prev_url = data['paging']['previous']
+                refresh_url = data['paging']['previous']
             else:
-                prev_url = url
-            cache.set(cache_name,str(prev_url))
-            return TaskSet(facebook_post.subtask((item,query, )) for item in items).apply_async()
+                refresh_url = url
+            return refresh_url,TaskSet(facebook_post.subtask((item,query, )) for item in items).apply_async()
         except urllib2.HTTPError, error:
             logger.error("Facebook API returned HTTP Error: %s - %s" % (error.code,url))
         except urllib2.URLError, error:
             logger.error("Facebook API returned URL Error: %s - %s" % (error,url))
-   
+
 
 @task
 def facebook_post(item, query, **kwargs):
