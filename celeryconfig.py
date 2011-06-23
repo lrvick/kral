@@ -5,9 +5,9 @@ Documentation: http://ask.github.com/celery/configuration.html
 
 """
 
-from kral import settings
+import settings
 
-CELERY_IMPORTS = ('kral.tasks',) 
+CELERY_IMPORTS = ('tasks',) 
 
 CELERYD_POOL = 'eventlet'
 

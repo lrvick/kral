@@ -8,7 +8,8 @@ PLUGIN_DIR = "plugins"
 PROJECT_PATH = os.path.realpath(os.path.dirname(__file__))
 PLUGIN_DIR_PATH = os.path.join(PROJECT_PATH, PLUGIN_DIR)
 
-KRAL_PLUGINS = ['facebook', 'twitter', 'buzz', 'wordpress', 'youtube', 'flickr'] #'identica',
+#KRAL_PLUGINS = ['facebook', 'twitter', 'buzz', 'wordpress', 'youtube', 'flickr'] #'identica',
+KRAL_PLUGINS = ['facebook']
 KRAL_SLOTS = 10
 KRAL_TIME = 5
 KRAL_USERAGENT = 'KralBot' 

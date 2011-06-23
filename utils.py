@@ -1,4 +1,4 @@
-from kral import settings
+import settings
 from kombu import BrokerConnection, Exchange, Producer
 from celery.execute import send_task
 import datetime

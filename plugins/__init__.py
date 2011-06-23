@@ -1,2 +1,2 @@
-import kral.settings
-__all__ = kral.settings.KRAL_PLUGINS
+import settings
+__all__ = settings.KRAL_PLUGINS

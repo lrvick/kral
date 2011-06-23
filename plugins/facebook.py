@@ -3,11 +3,11 @@ import json
 import re
 import time
 import urllib2
-from celery.decorators import periodic_task,task
+from celery.task import task,TaskSet
 from celery.result import AsyncResult
 
-from kral.utils import cache, push_data
-from kral import settings
+from utils import cache
+import settings
 
 @task
 def facebook(queries,**kwargs):
@@ -21,21 +21,10 @@ def facebook(queries,**kwargs):
         if diff >= 600:
             cache.set('facebook_rate_limit_time',int(round(time.time())))
             cache.set('facebook_rate_limit','0')
+            return None
         else:
-            task_ids = []
-            for query in queries:
-                cache_name = "facebookfeed_%s" % query
-                if cache.get(cache_name):
-                    previous_result = AsyncResult(cache.get(cache_name))
-                    if previous_result.ready():
-                        result = facebook_feed.delay(query)
-                        cache.set(cache_name,result.task_id)
-                        task_ids.append(result.get())
-                else:
-                    result = facebook_feed.delay(query)
-                    cache.set(cache_name,result.task_id)
-                    task_ids.append(result.get())
-            return task_ids
+            return TaskSet(facebook_feed.subtask((query, )) for query in queries).apply_async()
+
 
 @task        
 def facebook_feed(query, **kwargs):
@@ -55,17 +44,14 @@ def facebook_feed(query, **kwargs):
                 prev_url = data['paging']['previous']
             else:
                 prev_url = url
-            task_ids = []
-            for item in items:
-                result = facebook_post.delay(item, query)
-                task_ids.append(result.task_id)
             cache.set(cache_name,str(prev_url))
-            return task_ids
+            return TaskSet(facebook_post.subtask((item,query, )) for item in items).apply_async()
         except urllib2.HTTPError, error:
             logger.error("Facebook API returned HTTP Error: %s - %s" % (error.code,url))
         except urllib2.URLError, error:
             logger.error("Facebook API returned URL Error: %s - %s" % (error,url))
    
+
 @task
 def facebook_post(item, query, **kwargs):
     logger = facebook_post.get_logger(**kwargs)
@@ -73,6 +59,7 @@ def facebook_post(item, query, **kwargs):
     if item.has_key('message'):
         post_info = {
             "service" : 'facebook',
+            "query": query,
             "user" : {
                 "name": item['from'].get('name'),
                 "id": item['from']['id'],
@@ -92,7 +79,6 @@ def facebook_post(item, query, **kwargs):
             post_info['likes'] = item['likes']['count']
         if item.get('application'):
             post_info['application'] = item['application']['name']
-        push_data(post_info, queue=query)
-        return
+        return post_info
 
 # vim: ai ts=4 sts=4 et sw=4
