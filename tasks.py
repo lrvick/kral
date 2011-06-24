@@ -7,7 +7,7 @@ from celery.decorators import task
 from eventlet.timeout import Timeout
 import settings
 from utils import cache
-from plugins import *
+from services import *
 
 @task
 def url_process(url,query,n=1,original_url=None,**kwargs):

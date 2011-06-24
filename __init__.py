@@ -1,6 +1,5 @@
 import time
 import settings
-from plugins.facebook import facebook
 from celery.task import TaskSet
 from celery.execute import send_task
 
@@ -14,7 +13,7 @@ def stream(queries):
                 if service not in services:
                     services[service] = {}
                     services[service]['refresh_url'] = None
-                result = send_task('plugins.%s.%s' % (service,service),[query, services[service]['refresh_url']]).get()
+                result = send_task('services.%s.feed' % service,[query, services[service]['refresh_url']]).get()
                 if result:
                     services[service]['refresh_url'] = result[0] 
                     taskset = result[1]

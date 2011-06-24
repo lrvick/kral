@@ -11,9 +11,8 @@ from celery.result import AsyncResult
 from kral.utils import cache, push_data, fetch_queries 
 from kral import settings
 
-@periodic_task(run_every = getattr(settings, 'KRAL_WAIT', 5))
-def twitter(**kwargs):
-    queries = fetch_queries()
+@task
+def twitter(queries,**kwargs):
     if getattr(settings, 'KRAL_TWITTER_FIREHOSE', False) is not True:
         for query in queries:
             if '_' in query:
