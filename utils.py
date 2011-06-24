@@ -4,6 +4,7 @@ from celery.execute import send_task
 import datetime
 import json
 import pickle
+import urllib2
 
 try:
     import redis
