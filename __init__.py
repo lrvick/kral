@@ -28,5 +28,5 @@ def stream(queries):
                         tasks.append(current_task)
 
 if __name__ == '__main__':
-    for result in stream(['android','bitcoin']):
-        print result['service'],result['text']
+    for item in stream(['android','bitcoin']):
+        print "%s | %s" % (item['service'],item['text'])

@@ -31,19 +31,19 @@ celery itself.
 
 ## Usage / Installation ##
 
-1. Edit settings.py to suit your needs
-
-2. Edit celeryconfig.py to suit your needs
-
-3. Install dependencies
+1. Install dependencies
 
     pip install -r requirements.txt
 
-3. Start Celery
+2. Edit settings.py to suit your needs
 
-    celeryd -B
+3. Edit celeryconfig.py to suit your needs
 
-4.  Collect data with kral.collect()
+4. Start Celery
+
+    celeryd --purge -l INFO
+
+5.  Collect data with kral.stream()
 
 From here you can start using the kral.collect() generator to collect data 
 within your appliction.
@@ -54,7 +54,7 @@ Example that outputs the latest social data on "android"
 
 import kral
 
-for item in kral.collect('android'):
+for item in kral.stream('android'):
     print "%s | %s" % (item.service,item.text)
 
 ```
