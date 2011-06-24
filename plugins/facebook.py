@@ -1,12 +1,10 @@
-import datetime
-import json
 import re
-import time
+import json
 import urllib2
+import datetime
+import settings
 from celery.task import task,TaskSet
 from celery.result import AsyncResult
-from utils import cache
-import settings
 
 
 @task        
