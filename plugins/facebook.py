@@ -47,7 +47,7 @@ def facebook_post(item, query, **kwargs):
         post_info['user']['avatar'] = "http://graph.facebook.com/%s/picture" % item['from']['id']
         if 'to' in item:
             post_info['to_users'] = item['to']['data']
-        if 'likes ' in item:
+        if 'likes' in item:
             post_info['likes'] = item['likes']['count']
         if 'application' in item:
             post_info['application'] = item['application']['name']
