@@ -28,7 +28,7 @@ def facebook(query, refresh_url=None, **kwargs):
 def facebook_post(item, query, **kwargs):
     logger = facebook_post.get_logger(**kwargs)
     time_format = "%Y-%m-%dT%H:%M:%S+0000"
-    if item.has_key('message'):
+    if 'message' in item:
         post_info = {
             "service" : 'facebook',
             "query": query,
