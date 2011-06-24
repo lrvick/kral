@@ -13,7 +13,8 @@ def facebook(query, refresh_url=None, **kwargs):
     if refresh_url:
         url = refresh_url
     else:
-        url = "https://graph.facebook.com/search?q=%s&type=post&limit=25&access_token=%s" % (query.replace('_','%20'),settings.FACEBOOK_API_KEY)
+        url = "https://graph.facebook.com/search?q=%s&type=post&limit=25&access_token=%s" 
+        url % (query.replace('_','%20'),settings.FACEBOOK_API_KEY)
     data = fetch_json('facebook',logger,url)
     if data:
         items = data['data']
