@@ -48,7 +48,7 @@ celery itself.
 From here you can start using the kral.collect() generator to collect data 
 within your appliction.
 
-Example that outputs the latest social data on "android"
+Example that outputs the latest social data on "android" and "bitcoin"
 
 ```python
 
