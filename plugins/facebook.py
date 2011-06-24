@@ -9,7 +9,7 @@ from celery.task import task,TaskSet
 
 @task        
 def facebook(query, refresh_url=None, **kwargs):
-    logger = facebook.get_logger(**kwargs)
+    logger = self.get_logger()
     if refresh_url:
         url = refresh_url
     else:
@@ -27,7 +27,7 @@ def facebook(query, refresh_url=None, **kwargs):
 
 @task
 def facebook_post(item, query, **kwargs):
-    logger = facebook_post.get_logger(**kwargs)
+    logger = self.get_logger()
     if 'message' in item:
         post_info = {
             "service" : 'facebook',
