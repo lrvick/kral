@@ -9,12 +9,13 @@ from celery.task import task,TaskSet
 
 @task        
 def facebook(query, refresh_url=None, **kwargs):
-    logger = self.get_logger()
+    logger = facebook.get_logger()
     if refresh_url:
         url = refresh_url
     else:
         url = "https://graph.facebook.com/search?q=%s&type=post&limit=25&access_token=%s" 
-        url % (query.replace('_','%20'),settings.FACEBOOK_API_KEY)
+        url = url % (query.replace('_','%20'),settings.FACEBOOK_API_KEY)
+        print url
     data = fetch_json('facebook',logger,url)
     if data:
         items = data['data']
@@ -27,7 +28,7 @@ def facebook(query, refresh_url=None, **kwargs):
 
 @task
 def facebook_post(item, query, **kwargs):
-    logger = self.get_logger()
+    logger = facebook_post.get_logger()
     if 'message' in item:
         post_info = {
             "service" : 'facebook',
