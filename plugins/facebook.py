@@ -4,7 +4,6 @@ import urllib2
 import datetime
 import settings
 from celery.task import task,TaskSet
-from celery.result import AsyncResult
 
 
 @task        
