@@ -45,11 +45,11 @@ def facebook_post(item, query, **kwargs):
         for url in url_regex.findall(item['message']):
             post_info['links'].append({ 'href' : url })
         post_info['user']['avatar'] = "http://graph.facebook.com/%s/picture" % item['from']['id']
-        if item.get('to'):
+        if 'to' in item:
             post_info['to_users'] = item['to']['data']
-        if item.get('likes'):
+        if 'likes ' in item:
             post_info['likes'] = item['likes']['count']
-        if item.get('application'):
+        if 'application' in item:
             post_info['application'] = item['application']['name']
         return post_info
 
