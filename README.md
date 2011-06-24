@@ -54,7 +54,7 @@ Example that outputs the latest social data on "android"
 
 import kral
 
-for item in kral.stream('android'):
+for item in kral.stream(['android','bitcoin']):
     print "%s | %s" % (item.service,item.text)
 
 ```
