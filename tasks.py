@@ -5,8 +5,8 @@ import urllib
 import urllib2
 from celery.decorators import task
 from eventlet.timeout import Timeout
-from kral import settings
-from kral.utils import cache
+import settings
+from utils import cache
 from plugins import *
 
 @task
