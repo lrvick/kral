@@ -3,28 +3,25 @@ import json
 import urllib2
 import datetime
 import settings
+from utils import fetch_json
 from celery.task import task,TaskSet
 
 
 @task        
 def facebook(query, refresh_url=None, **kwargs):
-        logger = facebook.get_logger(**kwargs)
-        if refresh_url:
-            url = refresh_url
+    logger = facebook.get_logger(**kwargs)
+    if refresh_url:
+        url = refresh_url
+    else:
+        url = "https://graph.facebook.com/search?q=%s&type=post&limit=25&access_token=%s" % (query.replace('_','%20'),settings.FACEBOOK_API_KEY)
+    data = fetch_json('facebook',logger,url)
+    if data:
+        items = data['data']
+        if data.get('paging'):
+            refresh_url = data['paging']['previous']
         else:
-            url = "https://graph.facebook.com/search?q=%s&type=post&limit=25&access_token=%s" % (query.replace('_','%20'),settings.FACEBOOK_API_KEY)
-        try:
-            data = json.loads(urllib2.urlopen(url).read())
-            items = data['data']
-            if data.get('paging'):
-                refresh_url = data['paging']['previous']
-            else:
-                refresh_url = url
-            return refresh_url,TaskSet(facebook_post.subtask((item,query, )) for item in items).apply_async()
-        except urllib2.HTTPError, error:
-            logger.error("Facebook API returned HTTP Error: %s - %s" % (error.code,url))
-        except urllib2.URLError, error:
-            logger.error("Facebook API returned URL Error: %s - %s" % (error,url))
+            refresh_url = url
+        return refresh_url,TaskSet(facebook_post.subtask((item,query, )) for item in items).apply_async()
 
 
 @task
