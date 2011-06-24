@@ -18,16 +18,15 @@ keyword(s), and yeilding the retreived data in a unified format.
 
 ## Requirements ##
 
-Celery is used for task management within kral, and celery at a minimum requires
-a key/value store to keep track of the running tasks.
+Celery is used for task management within kral, and at a minimum it requires
+a key/value store to keep track of the running tasks, and a backend to stash
+results as it goes.
 
-Kral itself also needs a key/value store to track running queries etc.
-
-Redis fufills both of these requirements, and for means of simple demployment,
+Redis fufills both of these requirements, and for means of simple deployment,
 is the default.
 
-For production use however, RabbitMQ is far better suited as a backend for 
-celery itself.
+For production use however, AMQP setups like RabbitMQ will take a far larger
+beating.
 
 ## Usage / Installation ##
 
