@@ -4,9 +4,12 @@ Kral configuration
 """
 import os
 
+
 PLUGIN_DIR = "plugins"
 PROJECT_PATH = os.path.realpath(os.path.dirname(__file__))
 PLUGIN_DIR_PATH = os.path.join(PROJECT_PATH, PLUGIN_DIR)
+
+TIME_FORMAT = "%Y-%m-%dT%H:%M:%S+0000"
 
 #KRAL_PLUGINS = ['facebook', 'twitter', 'buzz', 'wordpress', 'youtube', 'flickr'] #'identica',
 KRAL_PLUGINS = ['facebook']

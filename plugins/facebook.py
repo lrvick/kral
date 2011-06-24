@@ -28,7 +28,6 @@ def facebook(query, refresh_url=None, **kwargs):
 @task
 def facebook_post(item, query, **kwargs):
     logger = facebook_post.get_logger(**kwargs)
-    time_format = "%Y-%m-%dT%H:%M:%S+0000"
     if 'message' in item:
         post_info = {
             "service" : 'facebook',
@@ -40,7 +39,7 @@ def facebook_post(item, query, **kwargs):
             "links" : [],
             "id" : item['id'],
             "text" : item['message'],
-            "date": str(datetime.datetime.strptime(item['created_time'], time_format)),
+            "date": str(datetime.datetime.strptime(item['created_time'], settings.TIME_FORMAT)),
         }
         url_regex = re.compile('(?:http|https|ftp):\/\/[\w\-_]+(?:\.[\w\-_]+)+(?:[\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?')
         for url in url_regex.findall(item['message']):
