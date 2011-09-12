@@ -1,10 +1,9 @@
 import time
 import settings
-from celery.task import TaskSet
 from celery.execute import send_task
 
 def stream(queries):
-    while True: 
+    while True:
         tasks = []
         services = {}
         for query in queries:
@@ -15,9 +14,9 @@ def stream(queries):
                     services[service]['refresh_url'] = None
                 result = send_task('services.%s.feed' % service,[query, services[service]['refresh_url']]).get()
                 if result:
-                    services[service]['refresh_url'] = result[0] 
+                    services[service]['refresh_url'] = result[0]
                     taskset = result[1]
-                    tasks.extend(taskset.subtasks) 
+                    tasks.extend(taskset.subtasks)
                     while tasks:
                         current_task = tasks.pop(0)
                         if current_task.ready():

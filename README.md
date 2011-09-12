@@ -32,7 +32,7 @@ beating.
 
 1. Install dependencies
 
-    pip install -r requirements.txt
+    ```pip install -r requirements.txt```
 
 2. Edit settings.py to suit your needs
 
@@ -40,7 +40,7 @@ beating.
 
 4. Start Celery
 
-    celeryd --purge -l INFO
+    ```celeryd --purge -l INFO```
 
 5.  Collect data with kral.stream()
 
