@@ -13,11 +13,11 @@ class TestStream(unittest.TestCase):
 
     def test_query_single(self):
         l = list(islice(stream(self.queries[0]),5))
-        self.assertEqual(5,len(l))
+        self.assertEqual(5,len(l), 'Failed to stream with a single query')
 
     def test_service_facebook(self):
         l = list(islice(stream(self.queries[0],'facebook'),5))
-        self.assertEqual(5, len(l), 'Failed to stream with single query.')
+        self.assertEqual(5, len(l), 'Failed to stream from Facebook')
 
     def test_service_twitter(self):
         l = list(islice(stream(self.queries[0],'twitter'),5))
