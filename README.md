@@ -1,6 +1,6 @@
 # Kral #
 
-<http://github.com/lrvick/kral>
+<http://github.com/Tawlk/kral>
 
 ## About ##
 
