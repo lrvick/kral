@@ -7,11 +7,13 @@ Documentation: http://ask.github.com/celery/configuration.html
 
 import settings
 
-CELERY_IMPORTS = ('tasks',) 
+CELERY_IMPORTS = ('services.facebook','services.twitter')
 
 CELERYD_POOL = 'eventlet'
 
 CELERYD_CONCURRENCY = 300
+
+CELERY_ALWAYS_EAGER = False
 
 # Task Broker Backend Settings
 BROKER_BACKEND = 'redis'

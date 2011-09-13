@@ -1,13 +1,11 @@
 import re
-import json
-import urllib2
 import datetime
 import settings
 from utils import fetch_json
 from celery.task import task,TaskSet
 
 
-@task        
+@task
 def feed(query, refresh_url=None, **kwargs):
     logger = feed.get_logger()
     if refresh_url:
@@ -23,7 +21,11 @@ def feed(query, refresh_url=None, **kwargs):
             refresh_url = data['paging']['previous']
         else:
             refresh_url = url
-        return refresh_url,TaskSet(post.subtask((item,query, )) for item in items).apply_async()
+        taskset = TaskSet(post.subtask((item,query, )) for item in items).apply_async()
+        print taskset
+        for result in taskset.results:
+            result.task_name = None
+        return refresh_url,taskset
 
 
 @task
