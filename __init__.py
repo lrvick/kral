@@ -8,22 +8,21 @@ for service in services.__all__:
         all_services.append(service)
 
 def stream(queries,service=None):
-    while True:
-        tasks = []
-        services = {}
-        if service in all_services:
+    tasks = []
+    services = {}
+    if service in all_services:
+        services[service] = {}
+        services[service]['refresh_url'] = {}
+    else:
+        for service in all_services:
             services[service] = {}
             services[service]['refresh_url'] = {}
-        else:
-            for service in all_services:
-                services[service] = {}
-                services[service]['refresh_url'] = {}
+    while True:
         for query in queries:
             time.sleep(1)
             for service in services:
                 result = send_task('services.%s.feed' % service, [query, services[service]['refresh_url']]).get()
                 if result:
-                    #print result[0]
                     services[service]['refresh_url'] = result[0]
                     taskset = result[1]
                     tasks.extend(taskset.subtasks)
