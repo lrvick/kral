@@ -19,7 +19,10 @@ def feed(query, url=None, **kwargs):
         print items[0]
         since_id = None # set since_id
         next_url = 'http://search.twitter.com/search.json?q=%s&since_id=%s' % (query,since_id)
-        return next_url,TaskSet(post.subtask((item,query, )) for item in items).apply_async()
+        taskset = TaskSet(post.subtask((item,query, )) for item in items).apply_async()
+        for result in taskset.results:
+            result.task_name = None
+        return next_url,taskset
 
 @task
 def post(item, query, **kwargs):

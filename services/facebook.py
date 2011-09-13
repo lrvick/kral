@@ -11,7 +11,7 @@ def feed(query, refresh_url=None, **kwargs):
     if refresh_url:
         url = refresh_url
     else:
-        url = "https://graph.facebook.com/search?q=%s&type=post&limit=25&access_token=%s" 
+        url = "https://graph.facebook.com/search?q=%s&type=post&limit=25&access_token=%s"
         url = url % (query.replace('_','%20'),settings.FACEBOOK_API_KEY)
         print url
     data = fetch_json('facebook',logger,url)
@@ -22,7 +22,6 @@ def feed(query, refresh_url=None, **kwargs):
         else:
             refresh_url = url
         taskset = TaskSet(post.subtask((item,query, )) for item in items).apply_async()
-        print taskset
         for result in taskset.results:
             result.task_name = None
         return refresh_url,taskset

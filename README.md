@@ -44,16 +44,28 @@ beating.
 
 5.  Collect data with kral.stream()
 
-From here you can start using the kral.collect() generator to collect data 
+From here you can start using the kral.collect() generator to collect data
 within your appliction.
 
-Example that outputs the latest social data on "android" and "bitcoin"
+Example that outputs the latest social data on "android" and "bitcoin" across
+all available networks.
 
 ```python
 
 import kral
 
 for item in kral.stream(['android','bitcoin']):
+    print "%s | %s" % (item.service,item.text)
+
+```
+
+Example that outputs the latest social data on "obama" using only twitter.
+
+```python
+
+import kral
+
+for item in kral.stream('obama','twitter'):
     print "%s | %s" % (item.service,item.text)
 
 ```
