@@ -1,32 +1,29 @@
-import os
 import time
-import sys
-import settings
-
-p = os.path.realpath(os.path.dirname(__file__))
-sys.path.append(p)
-
+import services
 from celery.execute import send_task
 
-os.environ['CELERY_CONFIG_MODULE'] = 'celeryconfig'
+all_services = []
+for service in services.__all__:
+    if service != '__init__':
+        all_services.append(service)
 
-from celery import registry
-
-print registry.tasks
-
-def stream(queries):
+def stream(queries,service=None):
     while True:
         tasks = []
         services = {}
+        if service in all_services:
+            services[service] = {}
+            services[service]['refresh_url'] = {}
+        else:
+            for service in all_services:
+                services[service] = {}
+                services[service]['refresh_url'] = {}
         for query in queries:
             time.sleep(1)
-            for service in settings.KRAL_PLUGINS:
-                if service not in services:
-                    services[service] = {}
-                    services[service]['refresh_url'] = None
+            for service in services:
                 result = send_task('services.%s.feed' % service, [query, services[service]['refresh_url']]).get()
                 if result:
-                    print result[0]
+                    #print result[0]
                     services[service]['refresh_url'] = result[0]
                     taskset = result[1]
                     tasks.extend(taskset.subtasks)
@@ -40,5 +37,5 @@ def stream(queries):
                             tasks.append(current_task)
 
 if __name__ == '__main__':
-    for item in stream(['android','bitcoin']):
+    for item in stream(['android','bitcoin'],'facebook'):
         print "%s | %s" % (item['service'],item['text'])
