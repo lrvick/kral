@@ -25,27 +25,24 @@ def stream(queries,services=None):
     if type(queries) is str:
         queries = [queries]
     if type(services) is str:
-        services = {services:{}}
+        services = [services]
     if type(services) is list:
         new_services = {}
         for service in services:
             if service in all_services:
                 new_services[service] = {}
-                new_services[service]['refresh_url'] = {}
+                for query in queries:
+                    new_services[service][query] = {}
+                    new_services[service][query]['refresh_url'] = {}
         services = new_services
-    print services
-    for service in services:
-        if service in all_services:
-            services[service] = {}
-            services[service]['refresh_url'] = {}
     tasks = []
     while True:
-        for query in queries:
-            time.sleep(1)
-            for service in services:
-                result = send_task('services.%s.feed' % service, [query, services[service]['refresh_url']]).get()
+        for service in services:
+            for query in queries:
+                time.sleep(1)
+                result = send_task('services.%s.feed' % service, [query, services[service][query]['refresh_url']]).get()
                 if result:
-                    services[service]['refresh_url'] = result[0]
+                    services[service][query]['refresh_url'] = result[0]
                     taskset = result[1]
                     tasks.extend(taskset.subtasks)
                     while tasks:
@@ -58,5 +55,7 @@ def stream(queries,services=None):
                             tasks.append(current_task)
 
 if __name__ == '__main__':
+    count = 0
     for item in stream(['android','bitcoin'],['facebook','twitter']):
-        print "%s | %s" % (item['service'],item['text'])
+        count += 1
+        print u"{0:7d} | {1:8s} | {2:18s} | {3:140s}".format(count,item['service'], item['user']['name'], item['text'].replace('\n',''))

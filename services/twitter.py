@@ -1,10 +1,6 @@
 import re
-import json
-import base64
 import rfc822
-import urllib2
 import datetime
-import settings
 from utils import fetch_json
 from celery.task import task,TaskSet
 
@@ -16,13 +12,15 @@ def feed(query, url=None, **kwargs):
     data = fetch_json('twitter',logger,url)
     if data:
         items = data['results']
-        print items[0]
-        since_id = None # set since_id
-        next_url = 'http://search.twitter.com/search.json?q=%s&since_id=%s' % (query,since_id)
-        taskset = TaskSet(post.subtask((item,query, )) for item in items).apply_async()
-        for result in taskset.results:
-            result.task_name = None
-        return next_url,taskset
+        if len(items) > 0:
+            since_id = items[0]['id']
+            next_url = 'http://search.twitter.com/search.json?q=%s&since_id=%s' % (query,since_id)
+            taskset = TaskSet(post.subtask((item,query, )) for item in items).apply_async()
+            for result in taskset.results:
+                result.task_name = None
+            return next_url,taskset
+        else:
+            return None
 
 @task
 def post(item, query, **kwargs):

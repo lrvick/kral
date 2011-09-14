@@ -13,7 +13,6 @@ def feed(query, refresh_url=None, **kwargs):
     else:
         url = "https://graph.facebook.com/search?q=%s&type=post&limit=25&access_token=%s"
         url = url % (query.replace('_','%20'),settings.FACEBOOK_API_KEY)
-        print url
     data = fetch_json('facebook',logger,url)
     if data:
         items = data['data']
@@ -51,8 +50,8 @@ def post(item, query, **kwargs):
             post_info['to_users'] = item['to']['data']
         if 'likes' in item:
             post_info['likes'] = item['likes']['count']
-        if 'application' in item:
-            post_info['application'] = item['application']['name']
+        if 'application' in item and item['application'] is not None:
+                post_info['application'] = item['application']['name']
         return post_info
 
 # vim: ai ts=4 sts=4 et sw=4
