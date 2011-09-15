@@ -1,5 +1,8 @@
+import os
 import time
 from celery.execute import send_task
+
+os.environ['CELERY_CONFIG_MODULE'] = 'kral.celeryconfig'
 
 def get_services():
     import services
