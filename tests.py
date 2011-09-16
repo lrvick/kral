@@ -1,5 +1,5 @@
 import unittest
-from __init__ import stream
+from kral import stream
 from itertools import islice
 
 class TestStream(unittest.TestCase):

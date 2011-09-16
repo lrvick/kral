@@ -4,29 +4,17 @@
 
 ## About ##
 
-kral (pronounced: "crawl") is a python library intended to be a flexible solution 
+kral (pronounced: "crawl") is a python library intended to be a flexible solution
 for retreiving live streaming data from a variety of social network apis on given
 keyword(s), and yeilding the retreived data in a unified format.
 
 ## Current Features ##
 
   * Ability to harvest user information, and posts from Twitter, Facebook, Buzz,
-    Identica, Youtube, Flickr, Wordpress 
+    Identica, Youtube, Flickr, Wordpress
   * Ability to expand all short-urls into full real URLs.
   * Ability to track number of mentions of a given URL across multiple networks.
   * Modular design. Easily add or disable plugins for different social networks.
-
-## Requirements ##
-
-Celery is used for task management within kral, and at a minimum it requires
-a key/value store to keep track of the running tasks, and a backend to stash
-results as it goes.
-
-Redis fufills both of these requirements, and for means of simple deployment,
-is the default.
-
-For production use however, AMQP setups like RabbitMQ will take a far larger
-beating.
 
 ## Usage / Installation ##
 
@@ -34,17 +22,20 @@ beating.
 
     ```pip install -r requirements.txt```
 
-2. Edit settings.py to suit your needs
+2. Include settings and set any credentials for services that require them
 
-3. Edit celeryconfig.py to suit your needs
+    ```python
+    include kral.settings
+    kral.settings['TWITTER_USER'] = 'youruser'
+    kral.settings['TWITTER_USER'] = 'your_pass'
+    kral.settings['BUZZ_API_KEY'] = 'your_key'
+    kral.settings['FACEBOOK_API_KEY'] = 'your_key'
+    kral.settings['FLICKR_API_KEY'] = 'your_key'
+    ```
 
-4. Start Celery
+3.  Collect data with kral.stream()
 
-    ```celeryd --purge -l INFO```
-
-5.  Collect data with kral.stream()
-
-From here you can start using the kral.collect() generator to collect data
+From here you can start using the kral.stream() generator to collect data
 within your appliction.
 
 Example that outputs the latest social data on "android" and "bitcoin" across

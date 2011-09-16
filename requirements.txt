@@ -1,4 +1,4 @@
 redis
-celery
+simplejson
 eventlet
 lxml
