@@ -101,7 +101,7 @@ def stream(queries, services, settings=settings):
     if type(services) is str:
         services = [services]
     if type(queries) is str:
-        services = [queries]
+        queries = [queries]
 
     queue = eventlet.Queue()
 
