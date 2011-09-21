@@ -75,7 +75,7 @@ keyword(s), and yeilding the retreived data in a unified format.
     You can also collect data via the CLI interface.
 
     ```bash
-    kral stream --services=twitter,facebook android
+    kral stream --config="kral.ini" --services="twitter,facebook" --queries="android"
     ```
 
     For more information on the CLI interface run:
