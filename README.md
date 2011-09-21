@@ -16,6 +16,11 @@ keyword(s), and yeilding the retreived data in a unified format.
   * Ability to track number of mentions of a given URL across multiple networks.
   * Modular design. Easily add or disable plugins for different social networks.
 
+## Requirements ##
+
+  * Python 2.6 - 2.7
+  * pip
+
 ## Usage / Installation ##
 
 1. Install kral
