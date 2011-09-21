@@ -46,11 +46,11 @@ keyword(s), and yeilding the retreived data in a unified format.
 
     ```ini
     [ DEFAULT ]
-    TWITTER_USER = 'your_user'
-    TWITTER_PASS = 'your_pass'
-    BUZZ_API_KEY = 'your_key'
-    FACEBOOK_API_KEY = 'your_key'
-    FLICKR_API_KEY = 'your_key'
+    TWITTER_USER = your_user
+    TWITTER_PASS = your_pass
+    BUZZ_API_KEY = your_key
+    FACEBOOK_API_KEY = your_key
+    FLICKR_API_KEY = your_key
     ```
 
 3.  Collect data
