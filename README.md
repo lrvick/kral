@@ -18,48 +18,71 @@ keyword(s), and yeilding the retreived data in a unified format.
 
 ## Usage / Installation ##
 
-1. Install dependencies
+1. Install kral
 
-    ```pip install -r requirements.txt```
+    ```bash
+    pip install -e git+https://github.com/Tawlk/kral/#egg=kral
+    ```
 
-2. Include settings and set any credentials for services that require them
+2. Configure
+
+    Include settings and set any credentials for services that require them
 
     ```python
     include kral.settings
-    kral.settings['TWITTER_USER'] = 'youruser'
+    kral.settings['TWITTER_USER'] = 'your_user'
     kral.settings['TWITTER_USER'] = 'your_pass'
     kral.settings['BUZZ_API_KEY'] = 'your_key'
     kral.settings['FACEBOOK_API_KEY'] = 'your_key'
     kral.settings['FLICKR_API_KEY'] = 'your_key'
     ```
 
-3.  Collect data with kral.stream()
+    Or, if you plan on using kral via the CLI, set up a kral.ini file as follows:
 
-From here you can start using the kral.stream() generator to collect data
-within your appliction.
+    ```ini
+    [ DEFAULT ]
+    TWITTER_USER = 'your_user'
+    TWITTER_PASS = 'your_pass'
+    BUZZ_API_KEY = 'your_key'
+    FACEBOOK_API_KEY = 'your_key'
+    FLICKR_API_KEY = 'your_key'
+    ```
 
-Example that outputs the latest social data on "android" and "bitcoin" across
-all available networks.
+3.  Collect data
 
-```python
+    From here you can start using the kral.stream() generator to collect data
+    within your appliction.
 
-import kral
+    Example that outputs the latest social data on "android" and "bitcoin" across
+    all available networks.
 
-for item in kral.stream(['android','bitcoin']):
-    print "%s | %s" % (item.service,item.text)
+    ```python
+    import kral
 
-```
+    for item in kral.stream(['android','bitcoin']):
+        print "%s | %s" % (item.service,item.text)
+    ```
 
-Example that outputs the latest social data on "obama" using only twitter.
+    Example that outputs the latest social data on "obama" using only twitter.
 
-```python
+    ```python
+    import kral
 
-import kral
+    for item in kral.stream('obama','twitter'):
+        print "%s | %s" % (item.service,item.text)
+    ```
 
-for item in kral.stream('obama','twitter'):
-    print "%s | %s" % (item.service,item.text)
+    You can also collect data via the CLI interface.
 
-```
+    ```bash
+    kral stream --services=twitter,facebook android
+    ```
+
+    For more information on the CLI interface run:
+
+    ```bash
+    kral --help
+    ```
 
 ## Notes ##
 
