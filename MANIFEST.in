@@ -2,5 +2,5 @@ include *.txt
 include README.md
 include CHANGES
 include LICENSE
-include AUTHORS
+include AUTHORS.md
 recursive-include bin *
