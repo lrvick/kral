@@ -1,6 +1,6 @@
 include *.txt
 include README.md
-include CHANGES
-include LICENSE
+include CHANGES.md
+include LICENSE.md
 include AUTHORS.md
 recursive-include bin *
