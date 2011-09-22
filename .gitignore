@@ -38,11 +38,9 @@
 /static/
 migrations/
 
-# Lance's leftovers
+# Dev leftovers
+*.ini
 ~*
 *.tmp
 *.bak
 *.pkl
-positive.txt
-negative.txt
-celerybeat-schedule
