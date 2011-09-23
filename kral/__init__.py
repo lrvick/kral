@@ -12,6 +12,18 @@ def main():
 
     subparsers = parser.add_subparsers(help='sub-command help', dest='parser')
 
+    parser_setup = subparsers.add_parser(
+        'setup',
+        help="Set up authentication data for all social network API kral needs to access",
+    )
+    parser_setup.add_argument(
+        '--services',
+        action='store',
+        type=csv,
+        default=None,
+        help="""Comma seperated list of services you wish to set up for streaming"""
+    )
+
     parser_stream = subparsers.add_parser('stream', help='Stream data from social networks')
     parser_stream.add_argument(
         '--services',
@@ -53,33 +65,38 @@ def main():
             print u"{0:7d} | {1:8s} | {2:18s} | {3:140s}".format(count,item['service'], item['user']['name'], item['text'].replace('\n',''))
 
 
-def stream(queries, services,settings_file=None):
+    if args.parser == 'setup':
+        print "Running setup for all services"
+        facebook.setup()
+        twitter.setup()
+
+def stream(query_list, service_list, settings_file=None):
     """
     Yields latest public postings from major social networks for given query or
     queries.
 
     Keyword arguments:
-    queries  -- a single query (string) or multiple queries (list)
-    services -- a single service (string) or multiple services (list)
+    query_list   -- a single query (string) or multiple queries (list)
+    service_list -- a single service (string) or multiple services (list)
 
     """
     settings = get_settings(settings_file)
 
     service_functions = {
-        'facebook': facebook,
-        'twitter': twitter
+        'facebook': facebook.stream,
+        'twitter': twitter.stream
     }
 
-    if type(services) is str:
-        services = [services]
-    if type(queries) is str:
-        queries = [queries]
+    if type(service_list) is str:
+        service_list = [service_list]
+    if type(query_list) is str:
+        query_list = [query_list]
 
     queue = eventlet.Queue()
 
     for service in service_functions:
-        if service in services:
-            eventlet.spawn(service_functions[service], queries, queue, settings)
+        if service in service_list:
+            eventlet.spawn(service_functions[service], query_list, queue, settings)
 
     while True:
         yield queue.get()
