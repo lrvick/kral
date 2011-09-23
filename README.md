@@ -31,18 +31,7 @@ keyword(s), and yeilding the retreived data in a unified format.
 
 2. Configure
 
-    Include settings and set any credentials for services that require them
-
-    ```python
-    include kral.settings
-    kral.settings['TWITTER_USER'] = 'your_user'
-    kral.settings['TWITTER_USER'] = 'your_pass'
-    kral.settings['BUZZ_API_KEY'] = 'your_key'
-    kral.settings['FACEBOOK_API_KEY'] = 'your_key'
-    kral.settings['FLICKR_API_KEY'] = 'your_key'
-    ```
-
-    Or, if you plan on using kral via the CLI, set up a kral.ini file as follows:
+    Edit ~/kral/config.ini file as follows:
 
     ```ini
     [ DEFAULT ]
@@ -80,7 +69,7 @@ keyword(s), and yeilding the retreived data in a unified format.
     You can also collect data via the CLI interface.
 
     ```bash
-    kral stream --config="kral.ini" --services="twitter,facebook" --queries="android"
+    kral stream  --services="twitter,facebook" --queries="android"
     ```
 
     For more information on the CLI interface run:
