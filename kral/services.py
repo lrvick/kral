@@ -1,21 +1,10 @@
-import eventlet
 import base64
 import time
 import datetime
 import re
 import simplejson as json
-from eventlet.green import urllib2
 from utils import fetch_json
-
-#Global settings. Import and customize.
-settings = {
-    'TIME_FORMAT' : "%Y-%m-%dT%H:%M:%S+0000",
-    'BUZZ_API_KEY' : '',
-    'FLICKR_API_KEY' : '',
-    'FACEBOOK_API_KEY' : '',
-    'TWITTER_USER' : '',
-    'TWITTER_PASS' : ''
-}
+from eventlet.green import urllib2
 
 def facebook(queries, queue, settings):
     while True:
@@ -83,38 +72,4 @@ def twitter(queries, queue, settings):
             post['links'].append({ 'href' : url.get('url') })
         queue.put(post)
 
-def stream(queries, services, settings=settings):
-    """
-    Yields latest public postings from major social networks for givenquery or
-    queries.
 
-    Keyword arguments:
-    queries  -- a single query (string) or multiple queries (list)
-    services -- a single service (string) or multiple services (list)
-
-    """
-    service_functions = {
-        'facebook': facebook,
-        'twitter': twitter
-    }
-
-    if type(services) is str:
-        services = [services]
-    if type(queries) is str:
-        queries = [queries]
-
-    queue = eventlet.Queue()
-
-    for service in service_functions:
-        if service in services:
-            eventlet.spawn(service_functions[service], queries, queue, settings)
-
-    while True:
-        yield queue.get()
-
-
-if __name__ == '__main__':
-    count = 0
-    for item in stream(['android','bitcoin'],['facebook','twitter']):
-        count += 1
-        print u"{0:7d} | {1:8s} | {2:18s} | {3:140s}".format(count,item['service'], item['user']['name'], item['text'].replace('\n',''))

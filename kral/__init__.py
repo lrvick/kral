@@ -1,8 +1,7 @@
-import os
 import argparse
-from kral import stream
-from kral import settings
-from ConfigParser import ConfigParser
+import eventlet
+from kral.utils import get_settings
+from kral.services import facebook, twitter
 
 def csv(value):
     return map(str, value.split(","))
@@ -46,22 +45,41 @@ def main():
     args = parser.parse_args()
 
     if args.parser == 'stream':
-        if not args.config:
-            args.config = settings
-        else:
-            if os.path.exists(args.config):
-                config = ConfigParser()
-                config.readfp(open(args.config))
-                settings['TWITTER_USER'] = config.get('DEFAULT','TWITTER_USER')
-                settings['TWITTER_PASS'] = config.get('DEFAULT','TWITTER_PASS')
-                settings['FACEBOOK_API_KEY'] = config.get('DEFAULT','FACEBOOK_API_KEY')
-                settings['BUZZ_API_KEY'] = config.get('DEFAULT','BUZZ_API_KEY')
-                settings['FLICKR_API_KEY'] = config.get('DEFAULT','FLICKR_API_KEY')
-            else:
-                print "Error: config file '%s' does not exist." % args.config
         count = 0
-        for item in stream(args.queries,args.services,settings):
+        for item in stream(args.queries,args.services,args.config):
             count +=1
             if args.count and args.count == count:
                 break
-            print item
+            print u"{0:7d} | {1:8s} | {2:18s} | {3:140s}".format(count,item['service'], item['user']['name'], item['text'].replace('\n',''))
+
+
+def stream(queries, services,settings_file=None):
+    """
+    Yields latest public postings from major social networks for given query or
+    queries.
+
+    Keyword arguments:
+    queries  -- a single query (string) or multiple queries (list)
+    services -- a single service (string) or multiple services (list)
+
+    """
+    settings = get_settings(settings_file)
+
+    service_functions = {
+        'facebook': facebook,
+        'twitter': twitter
+    }
+
+    if type(services) is str:
+        services = [services]
+    if type(queries) is str:
+        queries = [queries]
+
+    queue = eventlet.Queue()
+
+    for service in service_functions:
+        if service in services:
+            eventlet.spawn(service_functions[service], queries, queue, settings)
+
+    while True:
+        yield queue.get()
