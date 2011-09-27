@@ -1,8 +1,21 @@
 [DEFAULT]
-TWITTER_USER =
-TWITTER_PASS =
-IDENTICA_USER =
-IDENTICA_PASS =
-BUZZ_API_KEY =
-FACEBOOK_API_KEY =
-FLICKR_API_KEY =
+time_format =
+
+[Twitter]
+user =
+pass =
+
+[Facebook]
+app_id =
+api_secret =
+access_token =
+
+[Identica]
+user =
+pass =
+
+[Buzz]
+api_key =
+
+[Flickr]
+api_key =

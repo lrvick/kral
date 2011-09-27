@@ -10,7 +10,7 @@ def stream(queries, queue, settings):
     url = 'http://stream.twitter.com/1/statuses/filter.json'
     query_post = str("track="+",".join([q for q in queries]))
     httprequest = urllib2.Request(url,query_post)
-    auth = base64.b64encode('%s:%s' % (settings['TWITTER_USER'], settings['TWITTER_PASS']))
+    auth = base64.b64encode('%s:%s' % (settings['twitter']['user'], settings['twitter']['pass']))
     httprequest.add_header('Authorization', "basic %s" % auth)
     for item in urllib2.urlopen(httprequest):
         item = json.loads(item)

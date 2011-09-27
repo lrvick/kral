@@ -4,7 +4,7 @@ import datetime
 from kral.utils import fetch_json
 
 def setup():
-    print "running setup for facebook"
+    print 'setup facebook'
     pass
 
 def stream(queries, queue, settings):
@@ -12,7 +12,7 @@ def stream(queries, queue, settings):
         for query in queries:
             time.sleep(1)
             url = "https://graph.facebook.com/search?q=%s&type=post&limit=25&access_token=%s"
-            url = url % (query,settings['FACEBOOK_API_KEY'])
+            url = url % (query,settings['facebook']['access_token'])
             data = fetch_json('facebook',url)
             if data:
                 items = data['data']

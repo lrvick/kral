@@ -12,13 +12,25 @@ def get_settings(config_file=None):
 
     settings = {
         'TIME_FORMAT' : "%Y-%m-%dT%H:%M:%S+0000",
-        'BUZZ_API_KEY' : '',
-        'FLICKR_API_KEY' : '',
-        'FACEBOOK_API_KEY' : '',
-        'TWITTER_USER' : '',
-        'TWITTER_PASS' : '',
-        'IDENTICA_USER' : '',
-        'IDENTICA_PASS' : ''
+        'twitter': {
+            'user':'',
+            'pass':'',
+        },
+        'facebook': {
+            'app_id':'',
+            'app_secret':'',
+            'access_token':'',
+        },
+        'identica': {
+            'user':'',
+            'pass':'',
+        },
+        'buzz': {
+            'api_key':'',
+        },
+        'flickr': {
+            'api_key':'',
+        },
     }
 
     if config_file and os.path.exists(config_file):
@@ -40,8 +52,11 @@ def get_settings(config_file=None):
     else:
         config = ConfigParser()
         config.readfp(open(user_config_file))
+        for section in config.sections():
+            for key,value in config.items(section):
+                settings[section.lower()][key.lower()] = value
         for key,value in config.items('DEFAULT'):
-            settings[key.upper()] = value
+            settings[key.lower()] = value
 
     return settings
 
