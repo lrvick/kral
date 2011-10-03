@@ -5,7 +5,7 @@ setup(
     version='0.1.0',
     author='Tawlk',
     author_email='team@tawlk.com',
-    packages=['kral'],
+    packages=['kral','kral.services'],
     scripts=['bin/kral'],
     url='http://github.com/Tawlk/kral',
     license='LICENSE',
