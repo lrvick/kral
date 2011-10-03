@@ -2,63 +2,31 @@ import json
 import logging
 import os
 from eventlet.green import urllib2
-from ConfigParser import ConfigParser
 
-def get_settings(config_file=None):
-    """Returns array containing kral configuration settings
 
-    If user configuration file does not exist, one is created with defaults
-    """
+def config_init(config_file=None):
+    """ Initialize config with default values if it does not exist """
 
-    settings = {
-        'TIME_FORMAT' : "%Y-%m-%dT%H:%M:%S+0000",
-        'twitter': {
-            'user':'',
-            'pass':'',
-        },
-        'facebook': {
-            'app_id':'',
-            'app_secret':'',
-            'access_token':'',
-        },
-        'identica': {
-            'user':'',
-            'pass':'',
-        },
-        'buzz': {
-            'api_key':'',
-        },
-        'flickr': {
-            'api_key':'',
-        },
-    }
-
-    if config_file and os.path.exists(config_file):
-        user_config_file = os.path.expanduser(config_file)
+    if not config_file:
+        config_file = os.path.expanduser('~/.kral/config.ini')
     else:
-        user_config_file = os.path.expanduser('~/.kral/config.ini')
+        config_file = os.path.expanduser(config_file)
 
-    sample_config_file = '%s/docs/config.ini.sample' % os.path.dirname(os.getcwd())
+    if not os.path.exists(os.path.dirname(config_file)):
+        os.makedirs(os.path.dirname(config_file))
 
-    if not os.path.exists(os.path.dirname(user_config_file)):
-        os.makedirs(os.path.dirname(user_config_file))
-
-    if not os.path.exists(user_config_file):
+    if not os.path.exists(config_file):
+        sample_config_file = '%s/docs/config.ini.sample' % os.path.dirname(os.getcwd())
         fh = open(sample_config_file,"r")
         sample_config = fh.read()
         fh.close()
-        fh = open(user_config_file,"w")
+        fh = open(config_file,"w")
         fh.write(sample_config)
-    else:
-        config = ConfigParser()
-        config.readfp(open(user_config_file))
-        for section in config.sections():
-            for key,value in config.items(section):
-                settings[section.lower()][key.lower()] = value
-        for key,value in config.items('DEFAULT'):
-            settings[key.lower()] = value
+        fh.close()
 
-    return settings
+    fp = open(config_file)
+    return fp
+
 
 def fetch_json(service,url):
     """Returns json data from a given url

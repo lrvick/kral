@@ -1,16 +1,13 @@
 import base64
+import datetime
 import simplejson as json
 from eventlet.green import urllib2
-
-def setup():
-    print "running setup for twitter"
-    pass
 
 def stream(queries, queue, settings):
     url = 'https://stream.twitter.com/1/statuses/filter.json'
     query_post = str("track="+",".join([q for q in queries]))
     httprequest = urllib2.Request(url,query_post)
-    auth = base64.b64encode('%s:%s' % (settings['twitter']['user'], settings['twitter']['pass']))
+    auth = base64.b64encode('%s:%s' % (settings.get('Twitter','user'), settings.get('Twitter','pass')))
     httprequest.add_header('Authorization', "basic %s" % auth)
     for item in urllib2.urlopen(httprequest):
         item = json.loads(item)
@@ -31,12 +28,11 @@ def stream(queries, queue, settings):
             'links' : [],
             'id' : item['id'],
             'application': item['source'],
-            #'date' : str(datetime.datetime.strptime(item['created_at'], settings['TIME_FORMAT'])),
+            #'date' : str(datetime.datetime.strptime(item['created_at'], settings.get('Twitter','time_format')),
             'text' : item['text'],
             'geo' : item['coordinates'],
         }
         for url in item['entities']['urls']:
             post['links'].append({ 'href' : url.get('url') })
         queue.put(post)
-
 

@@ -7,8 +7,7 @@ pass =
 
 [Facebook]
 app_id =
-api_secret =
-access_token =
+app_secret =
 
 [Identica]
 user =
