@@ -5,6 +5,7 @@ import urllib
 import simplejson as json
 from urlparse import urlparse
 from eventlet.green import urllib2
+from eventlet.greenthread import sleep
 
 def stream(queries, queue, settings):
     def get_access_token():
@@ -101,4 +102,4 @@ def stream(queries, queue, settings):
                         # We can only do our best consistant guess, as Facebook does not tell us
                         # how many friends someone has. We can only guess by activity.
                     queue.put(post)
-                    time.sleep(1) # Facebook's API maxes out at 1 request/sec
+            sleep(1) # Facebook's API maxes out at 1 request/sec
