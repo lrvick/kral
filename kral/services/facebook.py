@@ -3,6 +3,7 @@ import re
 import datetime
 import urllib
 import simplejson as json
+from urlparse import urlparse
 from eventlet.green import urllib2
 
 def stream(queries, queue, settings):
@@ -21,6 +22,8 @@ def stream(queries, queue, settings):
 
     access_token = get_access_token()
 
+    last_id = None
+
     while True:
         for query in queries:
             url_args = {
@@ -29,7 +32,7 @@ def stream(queries, queue, settings):
                     {
                         'method': "GET",
                         'name' : "get-user-ids",
-                        "relative_url": "search?q=%s&type=post&limit=20" % 'android',
+                        "relative_url": "search?q=%s&type=post&limit=20" % query,
                         "omit_response_on_success": 0,
                     },
                     {
@@ -39,14 +42,29 @@ def stream(queries, queue, settings):
                 ]
             }
 
+            if last_id:
+                url_args['batch'][0]['relative_url'] = "%s&since=%s" % (url_args['batch'][0]['relative_url'],last_id)
+
             url = 'https://graph.facebook.com'
             request = urllib2.Request(url)
             request.add_data(urllib.urlencode(url_args))
             response = json.loads(urllib2.urlopen(request).read())
 
+            decoded_body = json.loads(response[0]['body'])
             profiles = json.loads(response[1]['body'])
-            items = json.loads(response[0]['body'])['data']
+            items = decoded_body['data']
 
+            if 'paging' in decoded_body:
+                previous_url = decoded_body['paging']['previous']
+                previous_url_args = urlparse(previous_url)[4].split('&')
+                for arg in previous_url_args:
+                    key,value = arg.split('=')
+                    if key == 'since':
+                        since_id = value
+                if not last_id:
+                    last_id = since_id
+                elif since_id > last_id:
+                    last_id = since_id
             for item in items:
                 if 'message' in item:
                     post = {
