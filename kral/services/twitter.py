@@ -10,30 +10,34 @@ def stream(queries, queue, settings):
     auth = base64.b64encode('%s:%s' % (settings.get('Twitter','user'), settings.get('Twitter','pass')))
     httprequest.add_header('Authorization', "basic %s" % auth)
     for item in urllib2.urlopen(httprequest):
-        item = json.loads(item)
-        if 'text' in item and 'user' in item:
-            post = {
-                'service' : 'twitter',
-                'user' : {
-                    'id' : item['user']['id_str'],
-                    'utc' : item['user']['utc_offset'],
-                    'name' : item['user']['screen_name'],
-                    'description' : item['user']['description'],
-                    'location' : item['user']['location'],
-                    'avatar' : item['user']['profile_image_url'],
-                    'subscribers': item['user']['followers_count'],
-                    'subscriptions': item['user']['friends_count'],
-                    'website': item['user']['url'],
-                    'language' : item['user']['lang'],
-                },
-                'links' : [],
-                'id' : item['id'],
-                'application': item['source'],
-                #'date' : str(datetime.datetime.strptime(item['created_at'], settings.get('Twitter','time_format')),
-                'text' : item['text'],
-                'geo' : item['coordinates'],
-            }
-            for url in item['entities']['urls']:
-                post['links'].append({ 'href' : url.get('url') })
-            queue.put(post)
+        try:
+            item = json.loads(item)
+        except json.JSONDecodeError:
+            item = None
+        if item:
+            if 'text' in item and 'user' in item:
+                post = {
+                    'service' : 'twitter',
+                    'user' : {
+                        'id' : item['user']['id_str'],
+                        'utc' : item['user']['utc_offset'],
+                        'name' : item['user']['screen_name'],
+                        'description' : item['user']['description'],
+                        'location' : item['user']['location'],
+                        'avatar' : item['user']['profile_image_url'],
+                        'subscribers': item['user']['followers_count'],
+                        'subscriptions': item['user']['friends_count'],
+                        'website': item['user']['url'],
+                        'language' : item['user']['lang'],
+                    },
+                    'links' : [],
+                    'id' : item['id'],
+                    'application': item['source'],
+                    #'date' : str(datetime.datetime.strptime(item['created_at'], settings.get('Twitter','time_format')),
+                    'text' : item['text'],
+                    'geo' : item['coordinates'],
+                }
+                for url in item['entities']['urls']:
+                    post['links'].append({ 'href' : url.get('url') })
+                queue.put(post)
 
