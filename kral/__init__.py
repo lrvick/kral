@@ -51,8 +51,10 @@ def main():
             count +=1
             if args.count and args.count == count:
                 break
-            print u"{0:7d} | {1:8s} | {2:22s} | {3:5d} | {4:140s}".format(count,item['service'], item['user']['name'], item['user']['subscribers'], item['text'].replace('\n',''))
-
+            try: # so some strings seem to break even unicode-escape... so we just dont display those. Temp hack until we can find a sane way to deal with this unicode inconsistancy.
+                print u"{0:7d} | {1:8s} | {2:8s} | {3:22s} | {4:5d} | {5:140s}".format(count,item['service'], item['query'], item['user']['name'], item['user']['subscribers'], item['text'].replace('\n','').encode('unicode-escape'))
+            except:
+                pass
 
 def stream(query_list, service_list, config_file=None):
     """

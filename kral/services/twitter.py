@@ -5,7 +5,8 @@ from eventlet.green import urllib2
 
 def stream(queries, queue, settings):
     url = 'https://stream.twitter.com/1/statuses/filter.json'
-    query_post = str("track="+",".join([q for q in queries]))
+    queries = [q.lower() for q in queries]
+    query_post = str("track="+",".join(queries))
     httprequest = urllib2.Request(url,query_post)
     auth = base64.b64encode('%s:%s' % (settings.get('Twitter','user'), settings.get('Twitter','pass')))
     httprequest.add_header('Authorization', "basic %s" % auth)
@@ -14,8 +15,12 @@ def stream(queries, queue, settings):
             item = json.loads(item)
         except json.JSONDecodeError:
             item = None
-        if item:
+        if 'user' in item:
             if 'text' in item and 'user' in item:
+                for query_str in queries:
+                    if query_str in item['text'].lower():
+                        query = query_str
+            if query:
                 post = {
                     'service' : 'twitter',
                     'user' : {
@@ -35,6 +40,7 @@ def stream(queries, queue, settings):
                     'application': item['source'],
                     #'date' : str(datetime.datetime.strptime(item['created_at'], settings.get('Twitter','time_format')),
                     'text' : item['text'],
+                    'query' : query,
                     'geo' : item['coordinates'],
                 }
                 for url in item['entities']['urls']:
