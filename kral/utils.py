@@ -1,8 +1,8 @@
 import json
 import logging
 import os
+import sys
 from eventlet.green import urllib2
-
 
 def config_init(config_file=None):
     """ Initialize config with default values if it does not exist """
@@ -16,7 +16,7 @@ def config_init(config_file=None):
         os.makedirs(os.path.dirname(config_file))
 
     if not os.path.exists(config_file):
-        sample_config_file = '%s/docs/config.ini.sample' % os.path.dirname(os.getcwd())
+        sample_config_file = '%s/kral/docs/config.ini.sample' % os.path.dirname(sys.path[0])
         fh = open(sample_config_file,"r")
         sample_config = fh.read()
         fh.close()
