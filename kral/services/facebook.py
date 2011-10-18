@@ -1,6 +1,5 @@
 import time
 import re
-import datetime
 import urllib
 import simplejson as json
 from urlparse import urlparse
@@ -80,7 +79,7 @@ def stream(queries, queue, settings):
                             "links" : [],
                             "id" : item['id'],
                             "text" : item['message'],
-                            #"date": str(datetime.datetime.strptime(item['created_time'], settings.get('Facebook','time_format'))),
+                            "date": int(time.mktime(time.strptime(item['created_time'],'%Y-%m-%jT%H:%M:%S+0000'))),
                         }
                         url_regex = re.compile('(?:http|https|ftp):\/\/[\w\-_]+(?:\.[\w\-_]+)+(?:[\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?')
                         for url in url_regex.findall(item['message']):

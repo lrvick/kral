@@ -1,5 +1,5 @@
 import base64
-import datetime
+import time
 import simplejson as json
 from eventlet.green import urllib2
 
@@ -38,7 +38,7 @@ def stream(queries, queue, settings):
                     'links' : [],
                     'id' : item['id'],
                     'application': item['source'],
-                    #'date' : str(datetime.datetime.strptime(item['created_at'], settings.get('Twitter','time_format')),
+                    'date' : int(time.mktime(time.strptime(item['created_at'],'%a %b %d %H:%M:%S +0000 %Y'))),
                     'text' : item['text'],
                     'query' : query,
                     'geo' : item['coordinates'],
