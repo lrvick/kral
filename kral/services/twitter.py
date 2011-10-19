@@ -31,7 +31,6 @@ def stream(queries, queue, settings):
                 lang = True
 
             if query and lang:
-                print item['user']['lang']
                 post = {
                     'service' : 'twitter',
                     'user' : {
