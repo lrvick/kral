@@ -31,16 +31,7 @@ keyword(s), and yeilding the retreived data in a unified format.
 
 2. Configure
 
-    Edit ~/kral/config.ini file as follows:
-
-    ```ini
-    [ DEFAULT ]
-    TWITTER_USER = your_user
-    TWITTER_PASS = your_pass
-    BUZZ_API_KEY = your_key
-    FACEBOOK_API_KEY = your_key
-    FLICKR_API_KEY = your_key
-    ```
+    Edit ~/kral/config.ini file with your credentials.
 
 3.  Collect data
 

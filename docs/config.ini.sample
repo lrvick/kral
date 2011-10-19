@@ -1,5 +1,6 @@
 [DEFAULT]
 time_format =
+lang = en
 
 [Twitter]
 user =

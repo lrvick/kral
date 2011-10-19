@@ -15,12 +15,23 @@ def stream(queries, queue, settings):
             item = json.loads(item)
         except json.JSONDecodeError:
             item = None
-        if 'user' in item:
-            if 'text' in item and 'user' in item:
-                for query_str in queries:
-                    if query_str in item['text'].lower():
-                        query = query_str
-            if query:
+        
+        if 'text' in item and 'user' in item:
+            for query_str in queries:
+                if query_str in item['text'].lower():
+                    query = query_str
+    
+
+            lang = False
+            settings_lang = settings.get("Twitter", 'lang')
+            if settings_lang:
+                if item['user']['lang'] == settings_lang:
+                    lang = True
+            else:
+                lang = True
+
+            if query and lang:
+                print item['user']['lang']
                 post = {
                     'service' : 'twitter',
                     'user' : {
