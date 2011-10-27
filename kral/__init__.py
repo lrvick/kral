@@ -1,6 +1,6 @@
 import argparse
 import eventlet
-from kral.services import facebook, twitter
+from kral.services import facebook, twitter, youtube
 from utils import config_init
 from ConfigParser import ConfigParser
 
@@ -73,7 +73,8 @@ def stream(query_list, service_list, config_file=None):
 
     service_functions = {
         'facebook': facebook.stream,
-        'twitter': twitter.stream
+        'twitter': twitter.stream,
+        'youtube': youtube.stream,
     }
 
     if type(service_list) is str:
