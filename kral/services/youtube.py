@@ -3,16 +3,16 @@ from eventlet.green import urllib2
 import simplejson as json
 import urllib
 
-def stream(queries, queue, config):
+def stream(queries, queue, settings):
     api_url = "http://gdata.youtube.com/feeds/api/videos?"
-
+    
     while True:
         for query in queries:
             
             p = {
                 'q':query,
-                'orderby': 'published',
-                'max-results': 25, 
+                'orderby': settings.get('Youtube', 'orderby', 'published'),
+                'max-results': settings.get('Youtube', 'maxresults', 25), 
                 'v': 2, 
                 'alt': 'json',
             }    
