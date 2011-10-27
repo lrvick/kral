@@ -56,14 +56,17 @@ def main():
             except:
                 pass
 
-def stream(query_list, service_list, config_file=None):
+def stream(query_list, service_list=[], config_file=None):
     """
     Yields latest public postings from major social networks for given query or
     queries.
 
-    Keyword arguments:
+    Arguments: 
     query_list   -- a single query (string) or multiple queries (list)
-    service_list -- a single service (string) or multiple services (list)
+
+    Keyword arguments:
+    service_list -- a single service (string) or multiple services (list) by 
+                    default all will be used
 
     """
     config_file = config_init(config_file)
@@ -85,8 +88,15 @@ def stream(query_list, service_list, config_file=None):
     queue = eventlet.Queue()
 
     for service in service_functions:
-        if service in service_list:
+        if not service_list:
+            eventlet.spawn(service_functions[service], query_list, queue, config)
+        elif service in service_list:
             eventlet.spawn(service_functions[service], query_list, queue, config)
 
     while True:
         yield queue.get()
+
+if __name__ == '__main__':
+    for i in stream('iphone'):
+        print i['service'] 
+
