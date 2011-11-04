@@ -1,6 +1,6 @@
 import argparse
 import eventlet
-from kral.services import facebook, twitter, youtube
+from kral.services import facebook, twitter, youtube, reddit
 from utils import config_init
 from ConfigParser import ConfigParser
 
@@ -78,6 +78,8 @@ def stream(query_list, service_list=[], config_file=None):
         'facebook': facebook.stream,
         'twitter': twitter.stream,
         'youtube': youtube.stream,
+        #'plus' : plus.stream,
+        'reddit': reddit.stream,
     }
 
     if type(service_list) is str:
@@ -97,6 +99,5 @@ def stream(query_list, service_list=[], config_file=None):
         yield queue.get()
 
 if __name__ == '__main__':
-    for i in stream('iphone'):
-        print i['service'] 
-
+    for i in stream(['android',], 'reddit'):
+        print i
