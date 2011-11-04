@@ -16,7 +16,7 @@ def stream(queries, queue, settings):
            
             p = {
                 'q' : query,
-                'sort' : 'new', #settings.get('Reddit', 'orderby', 'relevance'), 
+                'sort' : settings.get('Reddit', 'orderby', 'relevance'), 
             }
             
             url = api_url + urllib.urlencode(p)
