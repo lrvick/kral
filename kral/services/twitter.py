@@ -2,25 +2,37 @@ import base64
 import time
 import simplejson as json
 from eventlet.green import urllib2
+import urllib
 
 def stream(queries, queue, settings):
     url = 'https://stream.twitter.com/1/statuses/filter.json'
+    
     queries = [q.lower() for q in queries]
-    query_post = str("track="+",".join(queries))
-    httprequest = urllib2.Request(url,query_post)
+    quoted_queries = [urllib.quote(q) for q in queries]
+
+    query_post = 'track=' + ",".join(quoted_queries)        
+
+    request = urllib2.Request(url, query_post)
+    
     auth = base64.b64encode('%s:%s' % (settings.get('Twitter','user'), settings.get('Twitter','pass')))
-    httprequest.add_header('Authorization', "basic %s" % auth)
-    for item in urllib2.urlopen(httprequest):
+    
+    request.add_header('Authorization', "basic %s" % auth)
+    
+    for item in urllib2.urlopen(request):
         try:
             item = json.loads(item)
         except json.JSONDecodeError:
-            item = None
-        
+            continue
+
         if 'text' in item and 'user' in item:
+            
+            #make sure the query is in the text
+            #differntiate between what query is being currently searched
             for query_str in queries:
                 if query_str in item['text'].lower():
                     query = query_str
-    
+                else:
+                    query = None
 
             lang = False
             settings_lang = settings.get("Twitter", 'lang')
@@ -31,6 +43,7 @@ def stream(queries, queue, settings):
                 lang = True
 
             if query and lang:
+
                 post = {
                     'service' : 'twitter',
                     'user' : {
