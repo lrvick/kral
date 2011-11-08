@@ -93,7 +93,7 @@ def stream(queries, queue, settings):
                         }
                         #ratingCount – The total number of voters who have rated the video using either rating system.
                         #The number of voters who disliked the video can be calculated by subtracting the likeCount from the ratingCount.
-                        p['dislikes'] = entry['ratingCount'] - entry['likeCount']
+                        post['dislikes'] = entry['ratingCount'] - entry['likeCount']
                         
 
                         prev_ids[query].insert(0, entry_id) #add the entry ids to previous ids for query
