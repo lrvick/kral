@@ -18,14 +18,14 @@ def main():
         '--services',
         action='store',
         type=csv,
-        default=None,
+        default="twitter",
         help="""Comma seperated list of services you wish to return data from"""
     )
     parser_stream.add_argument(
         '--queries',
         action='store',
         type=csv,
-        default=None,
+        default="android",
         help="""Comma seperated list of queries to search"""
     )
     parser_stream.add_argument(
@@ -99,5 +99,6 @@ def stream(query_list, service_list=[], config_file=None):
         yield queue.get()
 
 if __name__ == '__main__':
-    for i in stream(['android',], 'reddit'):
+    print("Starting stream ... ")
+    for i in stream(['android',], 'youtube'):
         print i
