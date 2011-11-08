@@ -4,74 +4,104 @@ import simplejson as json
 import urllib
 from collections import defaultdict
 
-#NOTE: look into "dupe-protection" by using the start-index and max-results parameters
+#TODO: look into using the start-index and max-results parameters
 
 def stream(queries, queue, settings):
-    api_url = "http://gdata.youtube.com/feeds/api/videos?"
-   
 
-    prev_ids = defaultdict(list) #keep a rolling list of the last previous ids 
-                                 #to avoid dupes
+    mode = settings.get('Youtube', 'mode', 'most_popular')
+
+    api_url = "http://gdata.youtube.com/feeds/api/standardfeeds/%s?" % mode 
+
+    prev_ids = defaultdict(list)
 
     while True:
         
         for query in queries:
 
             p = {
-                'q':query,
+                'q': query,
                 'orderby': settings.get('Youtube', 'orderby', 'published'),
                 'max-results': settings.get('Youtube', 'maxresults', 25), 
                 'v': 2, 
-                'alt': 'json',
+                'alt': 'jsonc',
+                'format': 5,
             }    
-            
-            url  =  api_url + urllib.urlencode(p)
 
+            #time is only supported in these standard video feeds
+            if mode in ['top_rated', 'top_favorites', 'most_viewed', 
+                    'most_popular', 'most_discussed', 'most_responded',]:
+                p['time'] = settings.get('Youtube', 'time', 'today')
+
+            url  =  api_url + urllib.urlencode(p)
+            
             request = urllib2.Request(url)
             
             response = json.loads(urllib2.urlopen(request).read())
            
-            if 'feed' in response and 'entry' in response['feed']:
+            if 'data' in response and 'items' in response['data']:
                 
-                entries = response['feed']['entry']
-
+                entries = response['data']['items']
+                
                 for entry in entries:
+
+                    #['uploaded',
+                    #'category', 
+                    #'updated',
+                    #'rating',
+                    #'description',
+                    #'title',
+                    #'tags',
+                    #'thumbnail',
+                    #'content', 
+                    #'player',
+                    #'accessControl',
+                    #'uploader',
+                    #'ratingCount',
+                    #'duration',
+                    #'aspectRatio', 
+                    #'likeCount',
+                    #'favoriteCount',
+                    #'id', 
+                    #'viewCount']
                     
-                    entry_id =  entry['media$group']['yt$videoid']['$t']
+                    entry_id =  entry['id']
                     
+                    uploader = entry['uploader']
+
+                    profile_url = "http://youtube.com/" + uploader
+
                     if entry_id not in prev_ids[query]: #if we've already seen this id skip it
 
                         post = {
                             "service"     : "youtube",
                             "id"          : entry_id, 
                             "query"       : query,
-                            "date"        : entry['media$group']['yt$uploaded']['$t'],
+                            "date"        : entry['uploaded'],
                             "user"        : {
-                                                "name"    : entry['author'][0]['name']['$t'],
-                                                "profile" : entry['author'][0]['uri']['$t'],
+                                                "name"    : uploader,
+                                                "profile" : profile_url,
                                             },
-                            "source"      : entry['media$group']['media$player']['url'],
-                            "text"        : entry['media$group']['media$title']['$t'],
-                            "description" : entry['media$group']['media$description'].get('$t', ''),
-                            "keywords"    : entry['media$group']['media$keywords'].get('$t', ''),
-                            "duration"    : entry['media$group']['yt$duration']['seconds'], 
+                            "source"      : entry['player']['default'],
+                            "text"        : entry['title'],
+                            "description" : entry.get('description', ''),
+                            "category"    : entry['category'],
+                            "keywords"    : entry.get('tags', ''),
+                            "duration"    : entry['duration'], 
+                            'favorites'   : entry.get('favoriteCount', 0),
+                            'views'       : entry.get('viewCount', 0),
+                            'likes'       : entry.get('likeCount', 0),
+                            #'dislikes'    : entry.get('numDislikes', 0), -- isn't made available?
                         }
-                        
-                        if 'yt$statistics' in entry:
-                            post['favorites'] = entry['yt$statistics'].get('favoriteCount', 0)
-                            post['views'] = entry['yt$statistics'].get('viewCount', 0)
-                        if 'yt$rating' in entry:
-                            post['likes'] = entry['yt$statistics'].get('numLikes', 0)
-                            post['dislikes'] = entry['yt$statistics'].get('numDislikes', 0)
 
-                        prev_ids[query].insert(0, post['id']) #add the entry ids to previous ids for query
+                        prev_ids[query].insert(0, entry_id) #add the entry ids to previous ids for query
 
                         queue.put(post)
+                
+            #use 50 item buffer for dupes
+            #TODO: look into deque
+            prev_ids[query] = prev_ids[query][:50] 
             
-            #use the size of double max results as the buffer for dupes
-            prev_ids[query] = prev_ids[query][:int(settings.get('Youtube', 'maxresults', 25)) * 3] 
-            
-            sleep(5)
+            sleep(15)
 
 
 

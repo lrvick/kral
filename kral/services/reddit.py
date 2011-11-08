@@ -30,9 +30,9 @@ def stream(queries, queue, settings):
                 #api returns back 25 items
                 for item in response['data']['children']:
                     
-                    #if we've seen this item in the last 50 items skip it
                     item_id =  item['data']['id']
                     
+                    #if we've seen this item in the last 50 items skip it
                     if item_id not in prev_items[query]:   
                     
                         post = {
@@ -55,7 +55,8 @@ def stream(queries, queue, settings):
                         
                         prev_items[query].append(item_id)
             
-            #keep buffer 50 items long
+            #keep dupe buffer 50 items long
+            #TODO: look into using deque with maxlength
             prev_items[query] = prev_items[query][:50]
         
         sleep(30)
