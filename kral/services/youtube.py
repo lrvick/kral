@@ -87,11 +87,14 @@ def stream(queries, queue, settings):
                             "category"    : entry['category'],
                             "keywords"    : entry.get('tags', ''),
                             "duration"    : entry['duration'], 
-                            'favorites'   : entry.get('favoriteCount', 0),
-                            'views'       : entry.get('viewCount', 0),
-                            'likes'       : entry.get('likeCount', 0),
-                            #'dislikes'    : entry.get('numDislikes', 0), -- isn't made available?
+                            'favorites'   : entry['favoriteCount'],
+                            'views'       : entry['viewCount'],
+                            'likes'       : entry['likeCount'],
                         }
+                        #ratingCount – The total number of voters who have rated the video using either rating system.
+                        #The number of voters who disliked the video can be calculated by subtracting the likeCount from the ratingCount.
+                        p['dislikes'] = entry['ratingCount'] - entry['likeCount']
+                        
 
                         prev_ids[query].insert(0, entry_id) #add the entry ids to previous ids for query
 
