@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import unittest
 from kral import stream
 from itertools import islice

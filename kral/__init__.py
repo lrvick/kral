@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import argparse
 import eventlet
 from kral.services import facebook, twitter, youtube, reddit
