@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from eventlet.greenthread import sleep
 from eventlet.green import urllib2
 import simplejson as json
@@ -105,6 +107,3 @@ def stream(queries, queue, settings):
             prev_ids[query] = prev_ids[query][:50] 
             
             sleep(15)
-
-
-

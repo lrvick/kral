@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from eventlet.greenthread import sleep
 from eventlet.green import urllib2
 import simplejson as json
