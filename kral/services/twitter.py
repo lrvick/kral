@@ -7,11 +7,12 @@ from eventlet.green import urllib2
 import urllib
 
 def stream(queries, queue, settings):
+    
     url = 'https://stream.twitter.com/1/statuses/filter.json'
     
     queries = [q.lower() for q in queries]
+    
     quoted_queries = [urllib.quote(q) for q in queries]
-    print quoted_queries
 
     query_post = 'track=' + ",".join(quoted_queries)        
 
@@ -24,16 +25,17 @@ def stream(queries, queue, settings):
     for item in urllib2.urlopen(request):
         try:
             item = json.loads(item)
-        except json.JSONDecodeError:
+        except json.JSONDecodeError: #for whatever reason json reading twitters json sometimes raises this
             continue
 
         if 'text' in item and 'user' in item:
             
-            #make sure the query is in the text
-            #differntiate between what query is being currently searched
-            query = '' 
+            #determine what query we're on if it exists in the text
+            text = item['text'].lower()
+
+	    query = '' 
 	    for query_str in queries:
-                if query_str in item['text'].lower():
+                if query_str in text:
                     query = query_str
 
             lang = False
@@ -64,11 +66,13 @@ def stream(queries, queue, settings):
                     'id' : item['id'],
                     'application': item['source'],
                     'date' : int(time.mktime(time.strptime(item['created_at'],'%a %b %d %H:%M:%S +0000 %Y'))),
-                    'text' : item['text'],
+                    'text' : text,
                     'query' : query,
                     'geo' : item['coordinates'],
                 }
-                for url in item['entities']['urls']:
+                
+		for url in item['entities']['urls']:
                     post['links'].append({ 'href' : url.get('url') })
-                queue.put(post)
+                
+		queue.put(post)
 
