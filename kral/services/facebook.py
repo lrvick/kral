@@ -7,6 +7,7 @@ import simplejson as json
 from urlparse import urlparse
 from eventlet.green import urllib2
 from eventlet.greenthread import sleep
+import urllib
 
 def stream(queries, queue, settings):
     def get_access_token():
@@ -34,7 +35,7 @@ def stream(queries, queue, settings):
                     {
                         'method': "GET",
                         'name' : "get-user-ids",
-                        "relative_url": "search?q=%s&type=post&limit=20" % query,
+                        "relative_url": "search?q=%s&type=post&limit=20" % urllib.quote(query),
                         "omit_response_on_success": 0,
                     },
                     {
