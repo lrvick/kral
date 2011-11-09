@@ -11,6 +11,7 @@ def stream(queries, queue, settings):
     
     queries = [q.lower() for q in queries]
     quoted_queries = [urllib.quote(q) for q in queries]
+    print quoted_queries
 
     query_post = 'track=' + ",".join(quoted_queries)        
 
@@ -30,11 +31,10 @@ def stream(queries, queue, settings):
             
             #make sure the query is in the text
             #differntiate between what query is being currently searched
-            for query_str in queries:
+            query = '' 
+	    for query_str in queries:
                 if query_str in item['text'].lower():
                     query = query_str
-                else:
-                    query = None
 
             lang = False
             settings_lang = settings.get("Twitter", 'lang')
