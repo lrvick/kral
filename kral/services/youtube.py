@@ -13,11 +13,10 @@ def stream(queries, queue, settings):
     mode = settings.get('Youtube', 'mode', 'most_popular')
 
     api_url = "http://gdata.youtube.com/feeds/api/standardfeeds/%s?" % mode 
-
+    
     prev_ids = defaultdict(list)
 
     while True:
-        
         for query in queries:
 
             p = {
@@ -39,13 +38,12 @@ def stream(queries, queue, settings):
             request = urllib2.Request(url)
             
             response = json.loads(urllib2.urlopen(request).read())
-           
+        
             if 'data' in response and 'items' in response['data']:
                 
                 entries = response['data']['items']
                 
                 for entry in entries:
-
                     #['uploaded',
                     #'category', 
                     #'updated',
@@ -89,15 +87,14 @@ def stream(queries, queue, settings):
                             "category"    : entry['category'],
                             "keywords"    : entry.get('tags', ''),
                             "duration"    : entry['duration'], 
-                            'favorites'   : entry['favoriteCount'],
-                            'views'       : entry['viewCount'],
-                            'likes'       : entry['likeCount'],
+                            'favorites'   : entry.get('favoriteCount', 0),
+                            'views'       : entry.get('viewCount', 0),
+                            'likes'       : entry.get('likeCount', 0),
                         }
                         #ratingCount – The total number of voters who have rated the video using either rating system.
                         #The number of voters who disliked the video can be calculated by subtracting the likeCount from the ratingCount.
-                        post['dislikes'] = entry['ratingCount'] - entry['likeCount']
+                        post['dislikes'] = int(entry.get('ratingCount', 0)) - int(post['likes'])
                         
-
                         prev_ids[query].insert(0, entry_id) #add the entry ids to previous ids for query
 
                         queue.put(post)
