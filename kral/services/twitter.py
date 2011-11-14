@@ -6,7 +6,7 @@ import simplejson as json
 from eventlet.green import urllib2
 import urllib
 
-def stream(queries, queue, settings):
+def stream(queries, queue, settings, kral_start_time):
     
     url = 'https://stream.twitter.com/1/statuses/filter.json'
     

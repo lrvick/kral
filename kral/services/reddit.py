@@ -6,7 +6,7 @@ import simplejson as json
 from collections import defaultdict
 import urllib
 
-def stream(queries, queue, settings):
+def stream(queries, queue, settings, kral_start_time):
 
     api_url = "http://www.reddit.com/search.json?"
 

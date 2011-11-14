@@ -8,7 +8,7 @@ from collections import defaultdict
 
 #TODO: look into using the start-index and max-results parameters
 
-def stream(queries, queue, settings):
+def stream(queries, queue, settings, kral_start_time):
 
     mode = settings.get('Youtube', 'mode', 'most_popular')
 
