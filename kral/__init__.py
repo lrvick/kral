@@ -5,6 +5,7 @@ import eventlet
 from kral.services import facebook, twitter, youtube, reddit
 from utils import config_init
 from ConfigParser import ConfigParser
+import time
 
 def csv(value):
     return map(str, value.split(","))
@@ -71,6 +72,8 @@ def stream(query_list, service_list=[], config_file=None):
                     default all will be used
 
     """
+    kral_start_time = int(time.time())
+    
     config_file = config_init(config_file)
 
     config = ConfigParser()
@@ -93,14 +96,13 @@ def stream(query_list, service_list=[], config_file=None):
 
     for service in service_functions:
         if not service_list:
-            eventlet.spawn(service_functions[service], query_list, queue, config)
+            eventlet.spawn(service_functions[service], query_list, queue, config, kral_start_time)
         elif service in service_list:
-            eventlet.spawn(service_functions[service], query_list, queue, config)
+            eventlet.spawn(service_functions[service], query_list, queue, config, kral_start_time)
 
     while True:
         yield queue.get()
 
 if __name__ == '__main__':
     print("Starting stream ... ")
-    for i in stream(['android',], 'youtube'):
-        print i
+    for i in stream(['android', 'iphone', 'bieber',], ['facebook',]): print i 
