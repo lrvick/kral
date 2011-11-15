@@ -105,4 +105,5 @@ def stream(query_list, service_list=[], config_file=None):
 
 if __name__ == '__main__':
     print("Starting stream ... ")
-    for i in stream(['android', 'iphone', 'bieber',], ['facebook',]): print i 
+    for i in stream(['android', 'iphone', 'bieber',], ['facebook',]): 
+        print i
