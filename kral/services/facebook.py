@@ -59,9 +59,6 @@ def stream(queries, queue, settings, kral_start_time):
             else:
                 since = kral_start_time
     
-            print 'Kral Start Time:', kral_start_time
-            print 'Since:', since
-
             #set the since to retreive new posts
             url_args['batch'][0]['relative_url'] = "%s&since=%s" % (url_args['batch'][0]['relative_url'], since)
 
