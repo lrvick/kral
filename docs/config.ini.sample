@@ -1,6 +1,7 @@
 [DEFAULT]
 time_format =
 lang = en
+user_agent =
 
 [Twitter]
 user =
@@ -10,12 +11,11 @@ pass =
 app_id =
 app_secret =
 
-[Identica]
-user =
-pass =
+[Youtube]
+orderby = published
+maxresults = 25
+mode = most_recent 
+time = today
 
-[Buzz]
-api_key =
-
-[Flickr]
-api_key =
+[Reddit]
+orderby = relevance
