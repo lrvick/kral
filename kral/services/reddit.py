@@ -12,6 +12,8 @@ def stream(queries, queue, settings, kral_start_time):
 
     prev_items = defaultdict(list)
 
+    user_agent = settings.get('DEFAULT', 'user_agent', '')
+
     while True:
 
         for query in queries:
@@ -25,7 +27,14 @@ def stream(queries, queue, settings, kral_start_time):
         
             request = urllib2.Request(url)
 
-            response = json.loads(urllib2.urlopen(request).read())
+            if user_agent:
+                request.add_header('User-agent', user_agent)
+
+            try:
+                response = json.loads(urllib2.urlopen(request).read())
+            except urllib2.URLError:
+                sleep(5)
+                break
 
             if 'data' in response and 'children' in response['data']:
 

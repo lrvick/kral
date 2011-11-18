@@ -22,6 +22,10 @@ def stream(queries, queue, settings, kral_start_time):
     
     request.add_header('Authorization', "basic %s" % auth)
     
+    user_agent = settings.get('DEFAULT', 'user_agent', '')
+    
+    request.add_header('User-agent', user_agent)
+
     for item in urllib2.urlopen(request):
         try:
             item = json.loads(item)

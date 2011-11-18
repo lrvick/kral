@@ -7,12 +7,9 @@ import simplejson as json
 from eventlet.green import urllib2
 from eventlet.greenthread import sleep
 import urlparse
-import datetime
 
 def stream(queries, queue, settings, kral_start_time):
    
-    kral_start_time -= 60*60*3
-
     def get_access_token():
 
         url_args = {
@@ -28,12 +25,16 @@ def stream(queries, queue, settings, kral_start_time):
 
     access_token = get_access_token()
 
-    #keep a store of queries and their most recent posts' created times
+    #keep a store of queries and their previous_url since values to ensure we are 
+    #getting new items in our feed
     sinces = {}
+   
+    user_agent = settings.get('DEFAULT', 'user_agent', '')
     
     while True:
+        
         for query in queries:
-
+            
             #https://developers.facebook.com/docs/reference/api/batch/
             #do batch requests for facebook, currently limited to 20
             url_args = {
@@ -65,7 +66,15 @@ def stream(queries, queue, settings, kral_start_time):
             url = 'https://graph.facebook.com'
             request = urllib2.Request(url)
             request.add_data(urllib.urlencode(url_args))
-            response = json.loads(urllib2.urlopen(request).read())
+            
+            if user_agent:
+                request.add_header('User-agent', user_agent)
+
+            try:
+                response = json.loads(urllib2.urlopen(request).read())
+            except urllib2.URLError: #sometimes the connection times out or is refused this should not stop 
+                sleep(5)
+                break
 
             posts, profiles = response
 
@@ -74,16 +83,17 @@ def stream(queries, queue, settings, kral_start_time):
                 decoded_posts = json.loads(posts['body'])
                 decoded_profiles = json.loads(profiles['body'])
 
+                if not decoded_posts['data']:
+                    sleep(2) #don't process anything if we have no data 
+                    continue
+
                 #get the since value from the previous url
                 if 'paging' in decoded_posts and 'previous' in decoded_posts['paging']:
                     parsed_paging_data = urlparse.parse_qs(decoded_posts['paging']['previous'])
                     previous_since = int(parsed_paging_data['since'][0])
                     sinces[query] = previous_since
 
-                if 'data' in decoded_posts:
-                    items = decoded_posts['data']
-                else:
-                    items = []
+                items = decoded_posts['data']
 
                 for item in items:
                    
@@ -144,4 +154,4 @@ def stream(queries, queue, settings, kral_start_time):
                             queue.put(post)
 
                 
-            sleep(2) # time between requests this is actually 2 * num_queries
+            sleep(2) # time between requests this is actually seconds * num_queries
