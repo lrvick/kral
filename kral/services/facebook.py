@@ -6,6 +6,7 @@ import urllib
 import simplejson as json
 from eventlet.green import urllib2
 from eventlet.greenthread import sleep
+from kral.utils import fetch_json
 import urlparse
 
 def stream(queries, queue, settings, kral_start_time):
@@ -70,9 +71,9 @@ def stream(queries, queue, settings, kral_start_time):
             if user_agent:
                 request.add_header('User-agent', user_agent)
 
-            try:
-                response = json.loads(urllib2.urlopen(request).read())
-            except urllib2.URLError: #sometimes the connection times out or is refused this should not stop 
+            response = fetch_json(request)
+           
+            if not response:
                 sleep(5)
                 break
 

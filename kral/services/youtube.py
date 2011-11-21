@@ -5,6 +5,7 @@ from eventlet.green import urllib2
 import simplejson as json
 import urllib
 from collections import defaultdict
+from kral.utils import fetch_json
 
 #TODO: look into using the start-index and max-results parameters
 
@@ -42,9 +43,9 @@ def stream(queries, queue, settings, kral_start_time):
             if user_agent:
                 request.add_header('User-agent', user_agent)
 
-            try:
-                response = json.loads(urllib2.urlopen(request).read())
-            except urllib2.URLError:
+            response = fetch_json(request)
+            
+            if not response:
                 sleep(5)
                 break
 

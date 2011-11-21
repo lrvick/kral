@@ -28,20 +28,31 @@ def config_init(config_file=None):
     return fp
 
 
-def fetch_json(service,url):
-    """Returns json data from a given url
+def fetch_json(request):
+    """
+    Returns json data from a given request/url but
+    does more robust error handling. Will return 
+    nothing if encounters an error.
 
-    Keyword aguments:
-    service -- the name of the service
-    url     -- the url to pull json data from
+    Arguments:
+    request -- A urllib2 Request or url.
 
     """
+    
+    data = None 
+
     try:
-        data = json.loads(urllib2.urlopen(url).read())
-        return data
-    except urllib2.HTTPError, error:
-        logging.error("%s API returned HTTP Error: %s - %s" % (service,error.code,url))
-        return None
-    except urllib2.URLError, error:
-        logging.error("%s API returned URL Error: %s - %s" % (service,error,url))
-        return None
+        data = json.loads(urllib2.urlopen(request).read())
+    except urllib2.URLError, e:
+        if hasattr(e, 'reason'):
+            print("Failed to reach a server.")
+            print("Reason:", e.reason)
+        elif hasattr(e, 'code'):
+            print("The server couldn't fulfill the request.")
+            print("Error code:", e.code)
+    except Exception, e:
+        print("Something else went wrong.")
+        print(e)
+    
+    return data
+    

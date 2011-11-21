@@ -5,6 +5,7 @@ from eventlet.green import urllib2
 import simplejson as json
 from collections import defaultdict
 import urllib
+from kral.utils import fetch_json
 
 def stream(queries, queue, settings, kral_start_time):
 
@@ -30,9 +31,9 @@ def stream(queries, queue, settings, kral_start_time):
             if user_agent:
                 request.add_header('User-agent', user_agent)
 
-            try:
-                response = json.loads(urllib2.urlopen(request).read())
-            except urllib2.URLError:
+            response = fetch_json(request)
+            
+            if not response:
                 sleep(5)
                 break
 
