@@ -44,3 +44,5 @@ migrations/
 *.tmp
 *.bak
 *.pkl
+build
+dist
