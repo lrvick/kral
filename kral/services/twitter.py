@@ -7,23 +7,23 @@ from eventlet.green import urllib2
 import urllib
 
 def stream(queries, queue, settings, kral_start_time):
-    
+
     url = 'https://stream.twitter.com/1/statuses/filter.json'
-    
+
     queries = [q.lower() for q in queries]
-    
+
     quoted_queries = [urllib.quote(q) for q in queries]
 
-    query_post = 'track=' + ",".join(quoted_queries)        
+    query_post = 'track=' + ",".join(quoted_queries)
 
     request = urllib2.Request(url, query_post)
-    
+
     auth = base64.b64encode('%s:%s' % (settings.get('Twitter','user'), settings.get('Twitter','pass')))
-    
+
     request.add_header('Authorization', "basic %s" % auth)
-    
+
     user_agent = settings.get('DEFAULT', 'user_agent', '')
-    
+
     request.add_header('User-agent', user_agent)
 
     for item in urllib2.urlopen(request):
@@ -33,14 +33,15 @@ def stream(queries, queue, settings, kral_start_time):
             continue
 
         if 'text' in item and 'user' in item:
-            
+
             #determine what query we're on if it exists in the text
             text = item['text'].lower()
 
-	    query = '' 
-	    for query_str in queries:
-                if query_str in text:
-                    query = query_str
+            query = ''
+            for q in queries:
+                q_uni = unicode(q, 'utf-8')
+                if q_uni in text:
+                    query = q_uni
 
             lang = False
             settings_lang = settings.get("Twitter", 'lang')
@@ -53,30 +54,30 @@ def stream(queries, queue, settings, kral_start_time):
             if query and lang:
 
                 post = {
-                    'service' : 'twitter',
-                    'user' : {
-                        'id' : item['user']['id_str'],
-                        'utc' : item['user']['utc_offset'],
-                        'name' : item['user']['screen_name'],
-                        'description' : item['user']['description'],
-                        'location' : item['user']['location'],
-                        'avatar' : item['user']['profile_image_url'],
-                        'subscribers': item['user']['followers_count'],
-                        'subscriptions': item['user']['friends_count'],
-                        'website': item['user']['url'],
-                        'language' : item['user']['lang'],
-                    },
-                    'links' : [],
-                    'id' : item['id'],
-                    'application': item['source'],
-                    'date' : int(time.mktime(time.strptime(item['created_at'],'%a %b %d %H:%M:%S +0000 %Y'))),
-                    'text' : text,
-                    'query' : query,
-                    'geo' : item['coordinates'],
-                }
-                
-		for url in item['entities']['urls']:
+                        'service' : 'twitter',
+                        'user' : {
+                            'id' : item['user']['id_str'],
+                            'utc' : item['user']['utc_offset'],
+                            'name' : item['user']['screen_name'],
+                            'description' : item['user']['description'],
+                            'location' : item['user']['location'],
+                            'avatar' : item['user']['profile_image_url'],
+                            'subscribers': item['user']['followers_count'],
+                            'subscriptions': item['user']['friends_count'],
+                            'website': item['user']['url'],
+                            'language' : item['user']['lang'],
+                            },
+                        'links' : [],
+                        'id' : item['id'],
+                        'application': item['source'],
+                        'date' : int(time.mktime(time.strptime(item['created_at'],'%a %b %d %H:%M:%S +0000 %Y'))),
+                        'text' : text,
+                        'query' : query,
+                        'geo' : item['coordinates'],
+                        }
+
+                for url in item['entities']['urls']:
                     post['links'].append({ 'href' : url.get('url') })
-                
-		queue.put(post)
+
+                queue.put(post)
 
