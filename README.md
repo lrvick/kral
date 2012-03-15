@@ -31,7 +31,7 @@ keyword(s), and yeilding the retreived data in a unified format.
 
 2. Configure
 
-    Edit ~/kral/config.ini file with your credentials.
+    Copy the sample config from docs/config.py.sample into ~/.kral and edit ~/.kral/config.py file with your credentials.
 
 3.  Collect data
 
