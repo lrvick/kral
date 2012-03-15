@@ -1,32 +1,40 @@
 import json
-import logging
 import os
-import sys
 from eventlet.green import urllib2
+import imp
+import shutil
+
+PROJECT_PATH = os.path.realpath(os.path.dirname(__file__))
+DOC_PATH = '/'.join(PROJECT_PATH.split('/')[:-1]) + '/docs' 
 
 def config_init(config_file=None):
-    """ Initialize config with default values if it does not exist """
+    """Initializes and returns the config. 
+    
+    By default looks for config.py in the users ~/.kral dir.
+    If no config file is found it will copy the sample one in its place.
+    
+    Arguments:
+    config_file (str) -- Path to an optional config file.
+    """
 
-    if not config_file:
-        config_file = os.path.expanduser('~/.kral/config.ini')
+    config_path = os.path.expanduser('~/.kral')
+    config_fname = 'config.py'
+    
+    if config_file:
+        return imp.load_source(config_fname, config_file)
     else:
-        config_file = os.path.expanduser(config_file)
+        config_file = os.path.join(config_path, config_fname)
 
-    if not os.path.exists(os.path.dirname(config_file)):
-        os.makedirs(os.path.dirname(config_file))
+    if not os.path.exists(os.path.join(config_path)):
+        os.makedirs(config_path)
 
     if not os.path.exists(config_file):
-        sample_config_file = '%s/kral/docs/config.ini.sample' % os.path.dirname(sys.path[0])
-        fh = open(sample_config_file,"r")
-        sample_config = fh.read()
-        fh.close()
-        fh = open(config_file,"w")
-        fh.write(sample_config)
-        fh.close()
+        sample_config_path = os.path.join(DOC_PATH, 'config.py.sample')
+        target_config_path = os.path.join(config_path, 'config.py')
+        shutil.copy(sample_config_path, target_config_path)
 
-    fp = open(config_file)
-    return fp
-
+    config = imp.load_source(config_fname, config_file)
+    return config
 
 def fetch_json(request):
     """
