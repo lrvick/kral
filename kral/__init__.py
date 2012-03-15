@@ -2,8 +2,12 @@
 import argparse
 import eventlet
 from kral.services import facebook, twitter, youtube, reddit
-from kral.utils import config_init
 import time
+import os
+import shutil
+import imp
+
+PROJECT_PATH = os.path.realpath(os.path.dirname(__file__))
 
 def csv(value):
     return map(str, value.split(","))
@@ -47,8 +51,35 @@ def main():
     args = parser.parse_args()
 
     if args.parser == 'stream':
+        
+        #Make sure config is intialized, if not
+        #copy the empty config file into the ~/.kral dir and prompt user
+        #for setup
+        config_path = os.path.expanduser("~/.kral")
+        config_fname = "config.py"
+        
+        if not os.path.exists(config_path):
+            os.makedirs(config_path)
+      
+        if args.config:
+            config = imp.load_source(args.config)
+
+        else:
+            config_file = os.path.join(config_path, config_fname)
+            
+            if not os.path.exists(config_file):
+                sample_config_path = os.path.join(PROJECT_PATH, 'config.py')
+                target_config_path = os.path.join(config_path, 'config.py') 
+                shutil.copy(sample_config_path, target_config_path)
+                
+                print("A newly created config file exists in ~/.kral, you will need to edit it with your API credentials.")
+                return
+
+            config = imp.load_source(config_fname, config_file) 
+       
         count = 0
-        for item in stream(args.queries, args.services, args.config):
+        
+        for item in stream(args.queries, args.services, config):
             count +=1
             if args.count and args.count == count:
                 break
@@ -59,7 +90,7 @@ def main():
             except:
                 pass
 
-def stream(query_list, service_list=[], config_file=None):
+def stream(query_list, service_list=[], config=None):
     """
     Yields latest public postings from major social networks for given query or
     queries.
@@ -71,13 +102,11 @@ def stream(query_list, service_list=[], config_file=None):
     service_list (str/list) -- a single service (string) or multiple services (list) by 
                         default all will be used
 
-    config_file (str) -- Absolute path to a python configuration file.
+    config (obj) -- A config object.
     """
-    
+   
     kral_start_time = int(time.time())
     
-    config = config_init(config_file)
-
     service_functions = {
         'facebook': facebook.stream,
         'twitter': twitter.stream,

@@ -1,6 +1,7 @@
-#Config sample for kral.
+# -*- coding: utf-8 -*-
+#Config for Kral.
 
-#Default settings that apply to all
+#Default settings that apply to all services.
 time_format = ""
 lang = "en"
 user_agent = ""
