@@ -6,7 +6,7 @@ import simplejson as json
 from eventlet.green import urllib2
 import urllib
 
-def stream(queries, queue, settings, kral_start_time):
+def stream(queries, queue, config, kral_start_time):
 
     url = 'https://stream.twitter.com/1/statuses/filter.json'
 
@@ -18,13 +18,11 @@ def stream(queries, queue, settings, kral_start_time):
 
     request = urllib2.Request(url, query_post)
 
-    auth = base64.b64encode('%s:%s' % (settings.get('Twitter','user'), settings.get('Twitter','pass')))
+    auth = base64.b64encode('%s:%s' % (config.twitter['user'], config.twitter['pass']))
 
     request.add_header('Authorization', "basic %s" % auth)
 
-    user_agent = settings.get('DEFAULT', 'user_agent', '')
-
-    request.add_header('User-agent', user_agent)
+    request.add_header('User-agent', config.user_agent)
 
     for item in urllib2.urlopen(request):
         try:
@@ -44,9 +42,8 @@ def stream(queries, queue, settings, kral_start_time):
                     query = q_uni
 
             lang = False
-            settings_lang = settings.get("Twitter", 'lang')
-            if settings_lang:
-                if item['user']['lang'] == settings_lang:
+            if config.lang:
+                if item['user']['lang'] == config.lang:
                     lang = True
             else:
                 lang = True

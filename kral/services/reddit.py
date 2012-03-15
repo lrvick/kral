@@ -1,19 +1,17 @@
 # -*- coding: utf-8 -*-
-
 from eventlet.greenthread import sleep
 from eventlet.green import urllib2
-import simplejson as json
 from collections import defaultdict
 import urllib
 from kral.utils import fetch_json
 
-def stream(queries, queue, settings, kral_start_time):
+def stream(queries, queue, config, kral_start_time):
 
     api_url = "http://www.reddit.com/search.json?"
 
     prev_items = defaultdict(list)
 
-    user_agent = settings.get('DEFAULT', 'user_agent', '')
+    user_agent = config.user_agent
 
     while True:
 
@@ -21,7 +19,7 @@ def stream(queries, queue, settings, kral_start_time):
            
             p = {
                 'q' : query,
-                'sort' : settings.get('Reddit', 'orderby', 'relevance'), 
+                'sort' : config.reddit['orderby'] or 'relevance',
             }
             
             url = api_url + urllib.urlencode(p)

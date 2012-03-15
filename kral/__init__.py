@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
-
 import argparse
 import eventlet
 from kral.services import facebook, twitter, youtube, reddit
-from utils import config_init
-from ConfigParser import ConfigParser
+from kral.utils import config_init
 import time
 
 def csv(value):
@@ -36,7 +34,7 @@ def main():
         action='store',
         type=str,
         default=None,
-        help="""Path to an INI configuration file"""
+        help="""Path to a python configuration file"""
     )
     parser_stream.add_argument(
         '--count',
@@ -50,11 +48,13 @@ def main():
 
     if args.parser == 'stream':
         count = 0
-        for item in stream(args.queries,args.services,args.config):
+        for item in stream(args.queries, args.services, args.config):
             count +=1
             if args.count and args.count == count:
                 break
-            try: # so some strings seem to break even unicode-escape... so we just dont display those. Temp hack until we can find a sane way to deal with this unicode inconsistancy.
+            try: 
+                # so some strings seem to break even unicode-escape... so we just dont display those.
+                # Temp hack until we can find a sane way to deal with this unicode inconsistancy.
                 print u"{0:7d} | {1:8s} | {2:8s} | {3:22s} | {4:5d} | {5:140s}".format(count,item['service'], item['query'], item['user']['name'], item['user']['subscribers'], item['text'].replace('\n','').encode('unicode-escape'))
             except:
                 pass
@@ -65,19 +65,18 @@ def stream(query_list, service_list=[], config_file=None):
     queries.
 
     Arguments: 
-    query_list   -- a single query (string) or multiple queries (list)
+    query_list (str/list)  -- a single query (string) or multiple queries (list)
 
     Keyword arguments:
-    service_list -- a single service (string) or multiple services (list) by 
-                    default all will be used
+    service_list (str/list) -- a single service (string) or multiple services (list) by 
+                        default all will be used
 
+    config_file (str) -- Absolute path to a python configuration file.
     """
+    
     kral_start_time = int(time.time())
     
-    config_file = config_init(config_file)
-
-    config = ConfigParser()
-    config.readfp(config_file)
+    config = config_init(config_file)
 
     service_functions = {
         'facebook': facebook.stream,

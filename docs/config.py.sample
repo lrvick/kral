@@ -18,7 +18,7 @@ facebook = {
 
 youtube = {
     'orderby': 'published',
-    'maxaresults': 25,
+    'maxresults': 25,
     'mode': 'most_recent',
     'time': 'today',
 }

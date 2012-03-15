@@ -1,31 +1,27 @@
 # -*- coding: utf-8 -*-
-
 from eventlet.greenthread import sleep
 from eventlet.green import urllib2
-import simplejson as json
 import urllib
 from collections import defaultdict
 from kral.utils import fetch_json
 
 #TODO: look into using the start-index and max-results parameters
 
-def stream(queries, queue, settings, kral_start_time):
+def stream(queries, queue, config, kral_start_time):
 
-    mode = settings.get('Youtube', 'mode', 'most_popular')
+    mode = config.youtube['mode'] or 'most_popular' .get('Youtube', 'mode', 'most_popular')
 
     api_url = "http://gdata.youtube.com/feeds/api/standardfeeds/%s?" % mode 
     
     prev_ids = defaultdict(list)
 
-    user_agent = settings.get('DEFAULT', 'user_agent', '')
-    
     while True:
         for query in queries:
 
             p = {
                 'q': query,
-                'orderby': settings.get('Youtube', 'orderby', 'published'),
-                'max-results': settings.get('Youtube', 'maxresults', 25), 
+                'orderby': config.youtube['orderby'] or 'published',
+                'max-results': config.youtube['maxresults'] or 25,
                 'v': 2, 
                 'alt': 'jsonc',
                 'format': 5,
@@ -34,14 +30,13 @@ def stream(queries, queue, settings, kral_start_time):
             #time is only supported in these standard video feeds
             if mode in ['top_rated', 'top_favorites', 'most_viewed', 
                     'most_popular', 'most_discussed', 'most_responded',]:
-                p['time'] = settings.get('Youtube', 'time', 'today')
+                p['time'] = config.youtube['time'] or 'today'
 
             url  =  api_url + urllib.urlencode(p)
             
             request = urllib2.Request(url)
     
-            if user_agent:
-                request.add_header('User-agent', user_agent)
+            request.add_header('User-agent', config.user_agent)
 
             response = fetch_json(request)
             

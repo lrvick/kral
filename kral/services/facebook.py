@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 import time
 import re
 import urllib
@@ -9,13 +8,13 @@ from eventlet.greenthread import sleep
 from kral.utils import fetch_json
 import urlparse
 
-def stream(queries, queue, settings, kral_start_time):
+def stream(queries, queue, config, kral_start_time):
    
     def get_access_token():
 
         url_args = {
-            'client_id' : settings.get('Facebook','app_id'),
-            'client_secret' : settings.get('Facebook','app_secret'),
+            'client_id' : config.facebook['app_id'], 
+            'client_secret' : config.facebook['app_secret'],
             'grant_type' : 'client_credentials'
         }
         url = 'https://graph.facebook.com/oauth/access_token?%s' % urllib.urlencode(url_args)
@@ -30,7 +29,7 @@ def stream(queries, queue, settings, kral_start_time):
     #getting new items in our feed
     sinces = {}
    
-    user_agent = settings.get('DEFAULT', 'user_agent', '')
+    user_agent = config.user_agent 
     
     while True:
         
