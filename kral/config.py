@@ -2,27 +2,27 @@
 #Config for Kral.
 
 #Default settings that apply to all services.
-time_format = ""
-lang = "en"
-user_agent = ""
+TIME_FORMAT = ""
+LANG = "en"
+USER_AGENT = ""
 
 #Each service is a key-value mapping
-twitter = {
+TWITTER = {
     'user': '',
     'pass': '',
 }
 
-facebook = {
+FACEBOOK = {
     'app_id': '',
     'app_secret': '',
 }
 
-youtube = {
+YOUTUBE = {
     'orderby': 'published',
     'maxresults': 25,
     'mode': 'most_recent',
     'time': 'today',
 }
-reddit = {
+REDDIT = {
     'orderby': 'relevance',
 }

@@ -9,7 +9,7 @@ from kral.utils import fetch_json
 
 def stream(queries, queue, config, kral_start_time):
 
-    mode = config.youtube['mode'] or 'most_popular' .get('Youtube', 'mode', 'most_popular')
+    mode = config.YOUTUBE['mode'] or 'most_popular' .get('Youtube', 'mode', 'most_popular')
 
     api_url = "http://gdata.youtube.com/feeds/api/standardfeeds/%s?" % mode 
     
@@ -20,8 +20,8 @@ def stream(queries, queue, config, kral_start_time):
 
             p = {
                 'q': query,
-                'orderby': config.youtube['orderby'] or 'published',
-                'max-results': config.youtube['maxresults'] or 25,
+                'orderby': config.YOUTUBE['orderby'] or 'published',
+                'max-results': config.YOUTUBE['maxresults'] or 25,
                 'v': 2, 
                 'alt': 'jsonc',
                 'format': 5,
@@ -30,13 +30,13 @@ def stream(queries, queue, config, kral_start_time):
             #time is only supported in these standard video feeds
             if mode in ['top_rated', 'top_favorites', 'most_viewed', 
                     'most_popular', 'most_discussed', 'most_responded',]:
-                p['time'] = config.youtube['time'] or 'today'
+                p['time'] = config.YOUTUBE['time'] or 'today'
 
             url  =  api_url + urllib.urlencode(p)
             
             request = urllib2.Request(url)
     
-            request.add_header('User-agent', config.user_agent)
+            request.add_header('User-agent', config.USER_AGENT)
 
             response = fetch_json(request)
             

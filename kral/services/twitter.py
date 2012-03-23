@@ -18,11 +18,11 @@ def stream(queries, queue, config, kral_start_time):
 
     request = urllib2.Request(url, query_post)
 
-    auth = base64.b64encode('%s:%s' % (config.twitter['user'], config.twitter['pass']))
+    auth = base64.b64encode('%s:%s' % (config.TWITTER['user'], config.TWITTER['pass']))
 
     request.add_header('Authorization', "basic %s" % auth)
 
-    request.add_header('User-agent', config.user_agent)
+    request.add_header('User-agent', config.USER_AGENT)
 
     for item in urllib2.urlopen(request):
         try:
@@ -42,8 +42,8 @@ def stream(queries, queue, config, kral_start_time):
                     query = q_uni
 
             lang = False
-            if config.lang:
-                if item['user']['lang'] == config.lang:
+            if config.LANG:
+                if item['user']['lang'] == config.LANG:
                     lang = True
             else:
                 lang = True

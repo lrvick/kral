@@ -13,8 +13,8 @@ def stream(queries, queue, config, kral_start_time):
     def get_access_token():
 
         url_args = {
-            'client_id' : config.facebook['app_id'], 
-            'client_secret' : config.facebook['app_secret'],
+            'client_id' : config.FACEBOOK['app_id'], 
+            'client_secret' : config.FACEBOOK['app_secret'],
             'grant_type' : 'client_credentials'
         }
         url = 'https://graph.facebook.com/oauth/access_token?%s' % urllib.urlencode(url_args)
@@ -29,7 +29,7 @@ def stream(queries, queue, config, kral_start_time):
     #getting new items in our feed
     sinces = {}
    
-    user_agent = config.user_agent 
+    user_agent = config.USER_AGENT 
     
     while True:
         

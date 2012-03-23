@@ -11,7 +11,7 @@ def stream(queries, queue, config, kral_start_time):
 
     prev_items = defaultdict(list)
 
-    user_agent = config.user_agent
+    user_agent = config.USER_AGENT
 
     while True:
 
@@ -19,7 +19,7 @@ def stream(queries, queue, config, kral_start_time):
            
             p = {
                 'q' : query,
-                'sort' : config.reddit['orderby'] or 'relevance',
+                'sort' : config.REDDIT['orderby'] or 'relevance',
             }
             
             url = api_url + urllib.urlencode(p)
