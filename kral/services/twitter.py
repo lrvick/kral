@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-
 import base64
 import time
 import simplejson as json
 from eventlet.green import urllib2
 import urllib
+from kral import config
 
-def stream(queries, queue, config, kral_start_time):
+def stream(queries, queue, kral_start_time):
 
     url = 'https://stream.twitter.com/1/statuses/filter.json'
 
@@ -18,7 +18,7 @@ def stream(queries, queue, config, kral_start_time):
 
     request = urllib2.Request(url, query_post)
 
-    auth = base64.b64encode('%s:%s' % (config.TWITTER['user'], config.TWITTER['pass']))
+    auth = base64.b64encode('%s:%s' % (config.TWITTER['user'], config.TWITTER['password']))
 
     request.add_header('Authorization', "basic %s" % auth)
 
@@ -29,6 +29,7 @@ def stream(queries, queue, config, kral_start_time):
             item = json.loads(item)
         except json.JSONDecodeError: #for whatever reason json reading twitters json sometimes raises this
             continue
+
 
         if 'text' in item and 'user' in item:
 
@@ -72,7 +73,7 @@ def stream(queries, queue, config, kral_start_time):
                         'query' : query,
                         'geo' : item['coordinates'],
                         }
-
+                
                 for url in item['entities']['urls']:
                     post['links'].append({ 'href' : url.get('url') })
 

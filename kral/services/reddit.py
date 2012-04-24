@@ -4,8 +4,9 @@ from eventlet.green import urllib2
 from collections import defaultdict
 import urllib
 from kral.utils import fetch_json
+from kral import config
 
-def stream(queries, queue, config, kral_start_time):
+def stream(queries, queue, kral_start_time):
 
     api_url = "http://www.reddit.com/search.json?"
 

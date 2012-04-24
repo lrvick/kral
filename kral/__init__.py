@@ -34,13 +34,6 @@ def main():
         help="""Comma seperated list of queries to search"""
     )
     parser_stream.add_argument(
-        '--config',
-        action='store',
-        type=str,
-        default=None,
-        help="""Path to a python configuration file"""
-    )
-    parser_stream.add_argument(
         '--count',
         action='store',
         type=int,
@@ -51,35 +44,9 @@ def main():
     args = parser.parse_args()
 
     if args.parser == 'stream':
-        
-        #Make sure config is intialized, if not
-        #copy the empty config file into the ~/.kral dir and prompt user
-        #for setup
-        config_path = os.path.expanduser("~/.kral")
-        config_fname = "config.py"
-        
-        if not os.path.exists(config_path):
-            os.makedirs(config_path)
-      
-        if args.config:
-            config = imp.load_source(args.config)
-
-        else:
-            config_file = os.path.join(config_path, config_fname)
-            
-            if not os.path.exists(config_file):
-                sample_config_path = os.path.join(PROJECT_PATH, 'config.py')
-                target_config_path = os.path.join(config_path, 'config.py') 
-                shutil.copy(sample_config_path, target_config_path)
-                
-                print("A newly created config file exists in ~/.kral, you will need to edit it with your API credentials.")
-                return
-
-            config = imp.load_source(config_fname, config_file) 
-       
         count = 0
         
-        for item in stream(args.queries, args.services, config):
+        for item in stream(args.queries, args.services):
             count +=1
             if args.count and args.count == count:
                 break
@@ -90,7 +57,7 @@ def main():
             except:
                 pass
 
-def stream(query_list, service_list=[], config=None):
+def stream(query_list, service_list=[]):
     """
     Yields latest public postings from major social networks for given query or
     queries.
@@ -101,10 +68,7 @@ def stream(query_list, service_list=[], config=None):
     Keyword arguments:
     service_list (str/list) -- a single service (string) or multiple services (list) by 
                         default all will be used
-
-    config (obj) -- A config object.
     """
-   
     kral_start_time = int(time.time())
     
     service_functions = {
@@ -121,17 +85,17 @@ def stream(query_list, service_list=[], config=None):
         query_list = [query_list]
 
     queue = eventlet.Queue()
-
+    
     for service in service_functions:
         if not service_list:
-            eventlet.spawn(service_functions[service], query_list, queue, config, kral_start_time)
+            eventlet.spawn(service_functions[service], query_list, queue, kral_start_time)
         elif service in service_list:
-            eventlet.spawn(service_functions[service], query_list, queue, config, kral_start_time)
+            eventlet.spawn(service_functions[service], query_list, queue, kral_start_time)
 
     while True:
         yield queue.get()
 
 if __name__ == '__main__':
     print("Starting stream ... ")
-    for i in stream(['android', 'iphone', 'bieber',], ['facebook',]): 
+    for i in stream(['android', 'iphone', 'bieber',], ['twitter',]): 
         print i

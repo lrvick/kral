@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #Config for Kral.
 
 #Default settings that apply to all services.
@@ -9,12 +8,12 @@ USER_AGENT = ""
 #Each service is a key-value mapping
 TWITTER = {
     'user': '',
-    'pass': '',
+    'password': '',
 }
 
 FACEBOOK = {
-    'app_id': '',
-    'app_secret': '',
+    'app_id' : '',
+    'app_secret' : '',
 }
 
 YOUTUBE = {

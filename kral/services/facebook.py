@@ -7,8 +7,9 @@ from eventlet.green import urllib2
 from eventlet.greenthread import sleep
 from kral.utils import fetch_json
 import urlparse
+from kral import config
 
-def stream(queries, queue, config, kral_start_time):
+def stream(queries, queue, kral_start_time):
    
     def get_access_token():
 
@@ -29,10 +30,12 @@ def stream(queries, queue, config, kral_start_time):
     #getting new items in our feed
     sinces = {}
    
-    user_agent = config.USER_AGENT 
+    user_agent = config.USER_AGENT
+    print user_agent
     
     while True:
-        
+        print "Starting facebook"        
+        print queries
         for query in queries:
             
             #https://developers.facebook.com/docs/reference/api/batch/
@@ -77,7 +80,8 @@ def stream(queries, queue, config, kral_start_time):
                 break
 
             posts, profiles = response
-
+            print 'Posts', posts
+            print 'Profiles', profiles
             if posts and profiles:
                 
                 decoded_posts = json.loads(posts['body'])

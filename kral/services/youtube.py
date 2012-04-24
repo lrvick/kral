@@ -4,10 +4,14 @@ from eventlet.green import urllib2
 import urllib
 from collections import defaultdict
 from kral.utils import fetch_json
+from kral import config
 
 #TODO: look into using the start-index and max-results parameters
 
-def stream(queries, queue, config, kral_start_time):
+def stream(queries, queue, kral_start_time):
+
+    print('-'*50)
+    print str(config)
 
     mode = config.YOUTUBE['mode'] or 'most_popular' .get('Youtube', 'mode', 'most_popular')
 
