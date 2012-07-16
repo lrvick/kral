@@ -73,7 +73,7 @@ def stream(queries, queue, kral_start_time):
                         'query' : query,
                         'geo' : item['coordinates'],
                         }
-                
+
                 for url in item['entities']['urls']:
                     post['links'].append({ 'href' : url.get('url') })
 

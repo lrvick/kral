@@ -5,15 +5,15 @@ from eventlet.green import urllib2
 def fetch_json(request):
     """
     Returns json data from a given request/url but
-    does more robust error handling. Will return 
+    does more robust error handling. Will return
     nothing if encounters an error.
 
     Arguments:
     request -- A urllib2 Request or url.
 
     """
-    
-    data = None 
+
+    data = None
 
     try:
         data = json.loads(urllib2.urlopen(request).read())
@@ -27,6 +27,5 @@ def fetch_json(request):
     except Exception, e:
         print("Something else went wrong.")
         print(e)
-    
+
     return data
-    

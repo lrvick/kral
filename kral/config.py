@@ -1,27 +1,10 @@
-#Config for Kral.
+import os
 
-#Default settings that apply to all services.
-TIME_FORMAT = ""
-LANG = "en"
-USER_AGENT = ""
+#Default config for kral
 
-#Each service is a key-value mapping
-TWITTER = {
-    'user': '',
-    'password': '',
-}
+PROJECT_PATH = os.path.realpath(os.path.dirname(__file__))
+KRAL_PATH = os.path.expanduser('~/.kral')
+KRAL_USER_CONFIG_FILE = os.path.join(KRAL_PATH, 'config.py')
 
-FACEBOOK = {
-    'app_id' : '',
-    'app_secret' : '',
-}
-
-YOUTUBE = {
-    'orderby': 'published',
-    'maxresults': 25,
-    'mode': 'most_recent',
-    'time': 'today',
-}
-REDDIT = {
-    'orderby': 'relevance',
-}
+if os.path.exists(KRAL_USER_CONFIG_FILE):
+    execfile(KRAL_USER_CONFIG_FILE)
