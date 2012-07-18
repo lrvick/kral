@@ -1,11 +1,11 @@
 #Config for Kral.
 
-#Settings that apply to all services.
+#Settings that apply to all services
 TIME_FORMAT = ""
 LANG = "en"
 USER_AGENT = ""
 
-#Each service is a key-value mapping
+#Supported services settings
 TWITTER = {
     'user': '',
     'password': '',
@@ -22,6 +22,7 @@ YOUTUBE = {
     'mode': 'most_recent',
     'time': 'today',
 }
+
 REDDIT = {
     'orderby': 'relevance',
 }

@@ -10,16 +10,16 @@ keyword(s), and yeilding the retreived data in a unified format.
 
 ## Current Features ##
 
-  * Ability to harvest user information, and posts from Twitter, Facebook, Buzz,
-    Identica, Youtube, Flickr, Wordpress
+  * Ability to harvest user information, and posts from Twitter, Facebook, Reddit, and Youtube (more to be added)
   * Ability to expand all short-urls into full real URLs.
   * Ability to track number of mentions of a given URL across multiple networks.
   * Modular design. Easily add or disable plugins for different social networks.
 
 ## Requirements ##
 
-  * Python 2.6 - 2.7
+  * python2.7
   * pip
+  * virtualenv (recommended)
 
 ## Usage / Installation ##
 
@@ -29,9 +29,15 @@ keyword(s), and yeilding the retreived data in a unified format.
     pip install -e git+https://github.com/Tawlk/kral/#egg=kral
     ```
 
-2. Configure
+2. Configuration
 
-    Copy the sample config from docs/config.py.sample into ~/.kral and edit ~/.kral/config.py file with your credentials.
+   After installation simply run the kral cli command which will copy a configuration file to: ~/.kral/config.py
+   This file is a basic key-value mapping of the configuration options available.
+   You will want to set your credentials and other service specific settings here.
+
+   **Note: The user configuration settings need to be set in order for kral streaming to work from the CLI; however
+   you may also set the configuration options at runtime within your application by doing: from kral import config and setting
+   the values according to the config.py template. (i.e config.TWITTER = {'user': 'cute', 'password': 'kitty'})**
 
 3.  Collect data
 
